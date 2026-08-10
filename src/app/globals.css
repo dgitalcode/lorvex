@@ -1,26 +1,400 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* ─── LORVEX Design Tokens ─────────────────────────────
+   Quiet luxury: charcoal, ivory, champagne gold (sparing).
+   Inspired by Rolex restraint + Apple clarity + Nothing material honesty.
+─────────────────────────────────────────────────────── */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f5f1;
+  --foreground: #12110f;
+  --card: #fffcf8;
+  --card-foreground: #12110f;
+  --popover: #fffcf8;
+  --popover-foreground: #12110f;
+  --primary: #12110f;
+  --primary-foreground: #f7f5f1;
+  --secondary: #ebe6de;
+  --secondary-foreground: #12110f;
+  --muted: #ebe6de;
+  --muted-foreground: #6b655c;
+  --accent: #b89b6a;
+  --accent-foreground: #12110f;
+  --destructive: #8b2e2e;
+  --destructive-foreground: #f7f5f1;
+  --border: #ddd6ca;
+  --input: #ddd6ca;
+  --ring: #b89b6a;
+  --success: #2f5d3a;
+  --warning: #9a6b2f;
+  --radius: 0.25rem;
+  --luxury-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --nav-bar-height: 4.5rem;
+  --announcement-height: 0rem;
+  /* Runtime-measured by SiteHeader; fallback until first paint */
+  --header-height: calc(
+    var(--safe-top) + var(--nav-bar-height) + var(--announcement-height)
+  );
+  --page-gutter: 1.25rem;
+  --page-offset: calc(var(--header-height) + var(--page-gutter));
+  --shadow-soft: 0 1px 2px rgb(18 17 15 / 0.04), 0 8px 24px rgb(18 17 15 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(18 17 15 / 0.04), 0 16px 40px rgb(18 17 15 / 0.1);
+  --glass: rgb(247 245 241 / 0.72);
+  --glass-border: rgb(18 17 15 / 0.08);
+}
+
+.dark {
+  --background: #0c0b0a;
+  --foreground: #f2eee6;
+  --card: #151311;
+  --card-foreground: #f2eee6;
+  --popover: #151311;
+  --popover-foreground: #f2eee6;
+  --primary: #f2eee6;
+  --primary-foreground: #0c0b0a;
+  --secondary: #1c1916;
+  --secondary-foreground: #f2eee6;
+  --muted: #1c1916;
+  --muted-foreground: #a39a8c;
+  --accent: #c9ae7a;
+  --accent-foreground: #0c0b0a;
+  --destructive: #c45c5c;
+  --destructive-foreground: #0c0b0a;
+  --border: #2a2621;
+  --input: #2a2621;
+  --ring: #c9ae7a;
+  --glass: rgb(12 11 10 / 0.72);
+  --glass-border: rgb(242 238 230 / 0.08);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.45);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Anchor / hash navigation clears the fixed header */
+  scroll-padding-top: var(--page-offset);
+}
+
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --page-gutter: 2.5rem;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Unified focus treatment — one elegant gold ring everywhere */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 120;
+  transform: translateY(-200%);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.75rem 1.25rem;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: transform 0.3s var(--luxury-ease);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 35%, transparent);
+  color: var(--foreground);
+}
+
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+  letter-spacing: -0.02em;
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+}
+
+.luxury-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 3rem);
+}
+
+/* Clears the fixed announcement + navbar, with breathing room below */
+.page-pad {
+  padding-top: var(--page-offset);
+}
+
+/* Sticky storefront panels sit below the measured header */
+.sticky-below-header {
+  position: sticky;
+  top: var(--page-offset);
+}
+
+/* Sections / anchors never hide under the fixed nav when scrolled into view */
+.section-pad,
+.section-pad-sm,
+section[id],
+[data-scroll-section] {
+  scroll-margin-top: var(--page-offset);
+}
+
+main > * h1:first-of-type,
+.page-pad > h1,
+.page-pad > .luxury-container > h1,
+.page-pad header h1 {
+  scroll-margin-top: var(--page-offset);
+}
+
+.section-pad {
+  padding-block: clamp(4rem, 10vw, 8rem);
+}
+
+.section-pad-sm {
+  padding-block: clamp(2.5rem, 6vw, 5rem);
+}
+
+/* Premium card elevation on hover — GPU friendly */
+.hover-lift {
+  transition:
+    transform 0.5s var(--luxury-ease),
+    box-shadow 0.5s var(--luxury-ease);
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Hairline border that reads as engraved rather than drawn */
+.border-hairline {
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Subtle WhatsApp attention — luxury restraint, not flashy */
+@keyframes wa-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+}
+
+.wa-pulse {
+  animation: wa-pulse 3.6s var(--luxury-ease) infinite;
+}
+
+.premium-cursor a,
+.premium-cursor button {
+  cursor: none;
+}
+
+@keyframes lorvex-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lorvex-reveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-fade-up {
+  animation: lorvex-fade-up 0.8s var(--luxury-ease) both;
+}
+
+.animate-reveal {
+  animation: lorvex-reveal 1.1s var(--luxury-ease) both;
+}
+
+@keyframes lorvex-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: lorvex-marquee linear infinite;
+}
+
+@keyframes lorvex-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--muted) 40%,
+    color-mix(in oklab, var(--card) 70%, var(--muted)) 50%,
+    var(--muted) 60%
+  );
+  background-size: 200% 100%;
+  animation: lorvex-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes lorvex-check-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-check-pop {
+  animation: lorvex-check-pop 0.55s var(--luxury-ease) both;
+}
+
+html.luxury-cursor-active,
+html.luxury-cursor-active body {
+  cursor: none;
+}
+
+html.luxury-cursor-active a,
+html.luxury-cursor-active button,
+html.luxury-cursor-active [role="button"],
+html.luxury-cursor-active input,
+html.luxury-cursor-active textarea,
+html.luxury-cursor-active select {
+  cursor: none;
+}
+
+/* Comfortable touch targets on coarse pointers */
+@media (pointer: coarse) {
+  button,
+  a[role="button"] {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-marquee,
+  .animate-fade-up,
+  .animate-reveal,
+  .animate-check-pop,
+  .skeleton-shimmer,
+  .wa-pulse {
+    animation: none !important;
+  }
+
+  .hover-lift,
+  .hover-lift:hover {
+    transform: none;
+    transition: none;
+  }
+}
+
+@media print {
+  header,
+  footer,
+  nav,
+  [data-print-hide],
+  .print-hide {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  main {
+    padding: 0 !important;
+  }
 }

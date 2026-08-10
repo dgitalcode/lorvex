@@ -1,0 +1,40 @@
+{
+  "name": "LORVEX — Luxury Watchmaking in Morocco",
+  "short_name": "LORVEX",
+  "description": "Exceptional watches, curated in Morocco.",
+  "start_url": "/fr",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7f5f1",
+  "theme_color": "#12110f",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Boutique",
+      "short_name": "Shop",
+      "url": "/fr/shop",
+      "description": "Explorer la boutique"
+    },
+    {
+      "name": "Wishlist",
+      "short_name": "Wishlist",
+      "url": "/fr/account/wishlist",
+      "description": "Vos pièces favorites"
+    },
+    {
+      "name": "Recherche",
+      "short_name": "Search",
+      "url": "/fr/search",
+      "description": "Rechercher une montre"
+    }
+  ],
+  "prefer_related_applications": false
+}

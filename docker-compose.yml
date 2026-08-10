@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lorvex-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: lorvex
+      POSTGRES_PASSWORD: lorvex_dev_password
+      POSTGRES_DB: lorvex
+    volumes:
+      - lorvex_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lorvex -d lorvex"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lorvex_pg_data:

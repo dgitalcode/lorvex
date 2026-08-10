@@ -1,0 +1,68 @@
+import { notFound } from "next/navigation";
+import { isLocale, getDictionary, getDirection } from "@/i18n/get-dictionary";
+import { SiteHeader } from "@/components/storefront/site-header";
+import { SiteFooter } from "@/components/storefront/site-footer";
+import { getAnnouncement } from "@/server/repositories/catalog";
+import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
+import {
+  StorefrontExperience,
+  StorefrontPageTransition,
+} from "@/components/luxury/storefront-experience";
+import { AnalyticsTracker } from "@/components/shared/analytics-tracker";
+import { RoutePrefetcher } from "@/components/shared/route-prefetcher";
+import type { CSSProperties } from "react";
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: localeParam } = await params;
+  if (!isLocale(localeParam)) notFound();
+  const locale = localeParam;
+  const dictionary = getDictionary(locale);
+  const direction = getDirection(locale);
+  const announcement = await getAnnouncement().catch(() => null);
+  const announcementMessage = announcement?.message;
+  const announcementHeight = announcementMessage ? "2.25rem" : "0rem";
+
+  const skipLabel =
+    locale === "ar"
+      ? "تخطى إلى المحتوى"
+      : locale === "en"
+        ? "Skip to content"
+        : "Aller au contenu";
+
+  return (
+    <div
+      lang={locale}
+      dir={direction}
+      className="flex min-h-dvh flex-col"
+      style={
+        {
+          "--announcement-height": announcementHeight,
+        } as CSSProperties
+      }
+    >
+      <a href="#main-content" className="skip-link">
+        {skipLabel}
+      </a>
+      <StorefrontExperience locale={locale} dictionary={dictionary}>
+        <AnalyticsTracker />
+        <RoutePrefetcher locale={locale} />
+        <SiteHeader
+          locale={locale}
+          dictionary={dictionary}
+          announcement={announcementMessage}
+        />
+        <main id="main-content" className="flex-1">
+          <StorefrontPageTransition>{children}</StorefrontPageTransition>
+        </main>
+        <SiteFooter locale={locale} dictionary={dictionary} />
+        <WhatsAppButton locale={locale} />
+      </StorefrontExperience>
+    </div>
+  );
+}
