@@ -16,6 +16,7 @@ import {
 } from "@/components/storefront/home-sections";
 import { InfiniteMarquee } from "@/components/luxury/marquee";
 import { PersonalizedHomeBlocks } from "@/components/storefront/personalized-home";
+import { getStorefrontSettings } from "@/server/repositories/settings";
 import {
   getFeaturedProducts,
   getNewArrivals,
@@ -33,8 +34,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: localeParam } = await params;
   if (!isLocale(localeParam)) return {};
+  const settings = await getStorefrontSettings();
   return {
-    title: siteConfig.tagline[localeParam],
+    title: settings.tagline || siteConfig.tagline[localeParam],
     description: siteConfig.description[localeParam],
     alternates: {
       canonical: `/${localeParam}`,
@@ -65,6 +67,7 @@ export default async function HomePage({
     collections,
     testimonials,
     sections,
+    settings,
   ] = await Promise.all([
     getFeaturedProducts(8).catch(() => []),
     getNewArrivals(8).catch(() => []),
@@ -73,6 +76,7 @@ export default async function HomePage({
     getCollections().catch(() => []),
     getTestimonials().catch(() => []),
     getHomepageSections().catch(() => []),
+    getStorefrontSettings(),
   ]);
 
   const heroContent = sections.find((s) => s.key === "hero")?.content as
@@ -151,9 +155,11 @@ export default async function HomePage({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
-            name: siteConfig.name,
+            name: settings.siteName,
             url: siteConfig.url,
-            description: siteConfig.description[locale],
+            description: settings.tagline || siteConfig.description[locale],
+            email: settings.supportEmail,
+            telephone: settings.supportPhone,
             address: {
               "@type": "PostalAddress",
               addressCountry: "MA",

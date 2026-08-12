@@ -11,10 +11,14 @@ import {
   Heart,
   User,
   X,
+  Shield,
+  Package,
+  LogIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { siteConfig, type Locale } from "@/config/site";
+import type { Locale } from "@/config/site";
 import type { Dictionary } from "@/i18n/dictionaries";
+import type { StorefrontSettings } from "@/lib/storefront-settings";
 import { useCartStore } from "@/stores/cart-store";
 import { useLuxuryUiStore } from "@/stores/luxury-ui-store";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -71,7 +75,6 @@ function useHeaderChromeHeight(
         return;
       }
       document.documentElement.style.setProperty("--header-height", next);
-      // Keep GSAP pins / scroll triggers aligned with the measured chrome
       window.dispatchEvent(new Event("resize"));
     };
 
@@ -98,10 +101,14 @@ export function SiteHeader({
   locale,
   dictionary,
   announcement,
+  settings,
+  isAuthenticated,
 }: {
   locale: Locale;
   dictionary: Dictionary;
   announcement?: string;
+  settings: StorefrontSettings;
+  isAuthenticated: boolean;
 }) {
   const pathname = usePathname();
   const reduce = useReducedMotion();
@@ -110,6 +117,8 @@ export function SiteHeader({
   const [scrolled, setScrolled] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [megaPath, setMegaPath] = useState(pathname);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobilePath, setMobilePath] = useState(pathname);
   const setSearchOpen = useLuxuryUiStore((s) => s.setSearchOpen);
   const persistedCartCount = useCartStore((s) =>
     s.items.reduce((n, i) => n + i.quantity, 0),
@@ -121,7 +130,13 @@ export function SiteHeader({
     if (megaOpen) setMegaOpen(false);
   }
 
-  useHeaderChromeHeight(chromeRef, [announcement, pathname]);
+  // Close mobile menu on route change (incl. Back/Forward).
+  if (pathname !== mobilePath) {
+    setMobilePath(pathname);
+    if (mobileOpen) setMobileOpen(false);
+  }
+
+  useHeaderChromeHeight(chromeRef, [announcement, pathname, settings.siteName]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
@@ -135,6 +150,8 @@ export function SiteHeader({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const closeMobile = () => setMobileOpen(false);
+
   const links = [
     { href: `/${locale}/shop`, label: dictionary.nav.shop },
     { href: `/${locale}/collections`, label: dictionary.nav.collections },
@@ -142,6 +159,52 @@ export function SiteHeader({
     { href: `/${locale}/shop?limited=1`, label: dictionary.nav.limited },
     { href: `/${locale}/about`, label: dictionary.nav.about },
   ];
+
+  const accountLinks = isAuthenticated
+    ? [
+        {
+          href: `/${locale}/account`,
+          label: dictionary.nav.account,
+          icon: User,
+        },
+        {
+          href: `/${locale}/account/orders`,
+          label: dictionary.account.orders,
+          icon: Package,
+        },
+        {
+          href: `/${locale}/account/security`,
+          label: dictionary.account.settings,
+          icon: Shield,
+        },
+        {
+          href: `/${locale}/account/wishlist`,
+          label: dictionary.nav.wishlist,
+          icon: Heart,
+        },
+      ]
+    : [
+        {
+          href: `/${locale}/auth/sign-in`,
+          label:
+            locale === "ar"
+              ? "تسجيل الدخول"
+              : locale === "en"
+                ? "Sign in"
+                : "Connexion",
+          icon: LogIn,
+        },
+        {
+          href: `/${locale}/auth/sign-in`,
+          label:
+            locale === "ar"
+              ? "إنشاء حساب"
+              : locale === "en"
+                ? "Sign up"
+                : "Créer un compte",
+          icon: User,
+        },
+      ];
 
   const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
   const solidNav = !isHome || scrolled || megaOpen;
@@ -151,12 +214,19 @@ export function SiteHeader({
       onMouseLeave={() => setMegaOpen(false)}
       className="fixed inset-x-0 top-0 z-50"
     >
-      {/* Measured chrome only — mega menu stays outside so --header-height stays stable */}
-      <div
-        ref={chromeRef}
-        className="pt-[env(safe-area-inset-top,0px)]"
-      >
+      <div ref={chromeRef} className="pt-[env(safe-area-inset-top,0px)]">
         <AnnouncementBar message={announcement} />
+        {settings.maintenanceMode ? (
+          <div className="bg-accent text-accent-foreground">
+            <p className="px-4 py-1.5 text-center text-[10px] uppercase tracking-[0.16em]">
+              {locale === "ar"
+                ? "وضع الصيانة مفعّل"
+                : locale === "en"
+                  ? "Maintenance mode is enabled"
+                  : "Mode maintenance activé"}
+            </p>
+          </div>
+        ) : null}
         <div
           className={cn(
             "transition-[background,backdrop-filter,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -167,7 +237,7 @@ export function SiteHeader({
         >
           <div className="luxury-container flex h-[var(--nav-bar-height)] items-center justify-between gap-4">
             <div className="flex items-center gap-3 md:hidden">
-              <Sheet>
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
                   <button
                     type="button"
@@ -179,11 +249,11 @@ export function SiteHeader({
                 </SheetTrigger>
                 <SheetContent
                   side={locale === "ar" ? "right" : "left"}
-                  className="flex w-full max-w-sm flex-col bg-background/95 backdrop-blur-xl"
+                  className="flex w-full max-w-sm flex-col bg-background/95 pb-[max(1.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl"
                 >
                   <SheetHeader>
                     <SheetTitle className="font-display text-3xl tracking-[0.22em]">
-                      {siteConfig.name}
+                      {settings.siteName}
                     </SheetTitle>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                       {locale === "ar"
@@ -193,7 +263,7 @@ export function SiteHeader({
                           : "Menu"}
                     </p>
                   </SheetHeader>
-                  <nav className="mt-10 flex flex-1 flex-col gap-1">
+                  <nav className="mt-8 flex flex-1 flex-col gap-1 overflow-y-auto">
                     {links.map((link) => {
                       const active = pathname.startsWith(
                         link.href.split("?")[0],
@@ -203,6 +273,7 @@ export function SiteHeader({
                           key={link.href}
                           href={link.href}
                           aria-current={active ? "page" : undefined}
+                          onClick={closeMobile}
                           className={cn(
                             "border-b border-border/60 py-4 font-display text-3xl transition-colors",
                             active ? "text-accent" : "hover:text-accent",
@@ -212,9 +283,32 @@ export function SiteHeader({
                         </Link>
                       );
                     })}
+
+                    <div className="mt-8 border-t border-border/60 pt-6">
+                      <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                        {dictionary.nav.account}
+                      </p>
+                      <ul className="space-y-1">
+                        {accountLinks.map((item) => (
+                          <li key={`${item.href}-${item.label}`}>
+                            <Link
+                              href={item.href}
+                              onClick={closeMobile}
+                              className="flex items-center gap-3 py-3 text-sm uppercase tracking-[0.14em] transition-colors hover:text-accent"
+                            >
+                              <item.icon className="h-4 w-4 text-accent" />
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </nav>
                   <div className="mt-auto flex items-center justify-between border-t border-border pt-6">
-                    <LocaleSwitcher locale={locale} />
+                    <LocaleSwitcher
+                      locale={locale}
+                      onNavigate={closeMobile}
+                    />
                     <ThemeToggle />
                   </div>
                 </SheetContent>
@@ -224,9 +318,10 @@ export function SiteHeader({
             <Magnetic strength={0.2}>
               <Link
                 href={`/${locale}`}
+                onClick={closeMobile}
                 className="font-display text-2xl tracking-[0.28em] md:text-[1.65rem]"
               >
-                {siteConfig.name}
+                {settings.siteName}
               </Link>
             </Magnetic>
 
@@ -283,7 +378,11 @@ export function SiteHeader({
                 <Heart className="h-4 w-4" />
               </Link>
               <Link
-                href={`/${locale}/account`}
+                href={
+                  isAuthenticated
+                    ? `/${locale}/account`
+                    : `/${locale}/auth/sign-in`
+                }
                 aria-label={dictionary.nav.account}
                 className="hidden h-10 w-10 items-center justify-center sm:flex"
               >

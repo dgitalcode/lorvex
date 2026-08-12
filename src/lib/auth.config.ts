@@ -16,14 +16,10 @@ export const authConfig = {
     authorized({ auth, request }) {
       const path = request.nextUrl.pathname;
       if (!path.startsWith("/admin")) return true;
-      const role = auth?.user?.role;
-      return (
-        role === "SUPER_ADMIN" ||
-        role === "ADMIN" ||
-        role === "EDITOR" ||
-        role === "SUPPORT" ||
-        role === "ANALYST"
-      );
+      // Require a session for /admin. Staff vs customer is enforced in
+      // middleware so authenticated customers are redirected to /account
+      // instead of being treated as unauthenticated on the sign-in page.
+      return Boolean(auth?.user);
     },
     async jwt({ token, user }) {
       if (user) {

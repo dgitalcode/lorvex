@@ -2,18 +2,25 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { registerUser, type RegisterState } from "@/server/actions/auth";
 import { getAuthStrings } from "@/i18n/auth-strings";
+import { resolvePostLoginPath } from "@/lib/auth-redirect";
 import type { Locale } from "@/config/site";
 
 type Step = "credentials" | "totp" | "backup";
 
-export function SignInForm({ locale }: { locale: Locale }) {
+export function SignInForm({
+  locale,
+  callbackUrl,
+}: {
+  locale: Locale;
+  callbackUrl?: string;
+}) {
   const t = getAuthStrings(locale);
   const router = useRouter();
   const [registering, setRegistering] = useState(false);
@@ -28,6 +35,17 @@ export function SignInForm({ locale }: { locale: Locale }) {
     FormData
   >(registerUser, {});
   const showRegistration = registering && !registerState.success && step === "credentials";
+
+  async function goToPostLoginDestination() {
+    const session = await getSession();
+    const destination = resolvePostLoginPath({
+      role: session?.user?.role,
+      locale,
+      callbackUrl,
+    });
+    router.push(destination);
+    router.refresh();
+  }
 
   async function completeSignIn(otpValue?: string) {
     setLoading(true);
@@ -63,8 +81,7 @@ export function SignInForm({ locale }: { locale: Locale }) {
       return;
     }
 
-    router.push(`/${locale}/account`);
-    router.refresh();
+    await goToPostLoginDestination();
   }
 
   async function onCredentialsSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -107,8 +124,7 @@ export function SignInForm({ locale }: { locale: Locale }) {
       return;
     }
 
-    router.push(`/${locale}/account`);
-    router.refresh();
+    await goToPostLoginDestination();
   }
 
   async function onOtpSubmit(event: React.FormEvent<HTMLFormElement>) {

@@ -3,7 +3,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Role } from "@prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
   getCloudinaryConfigStatus,
@@ -18,6 +18,7 @@ import {
   type PermissionKey,
 } from "@/server/auth/permissions";
 import { writeAuditLog, writeSystemLog } from "@/server/services/audit";
+import { SITE_SETTINGS_TAG } from "@/server/repositories/settings";
 import {
   updateSiteSettingsSchema,
   updateStaffRoleSchema,
@@ -385,7 +386,14 @@ export async function updateSiteSettings(
       metadata: { siteName: settings.siteName, maintenanceMode: settings.maintenanceMode },
     });
 
+    updateTag(SITE_SETTINGS_TAG);
     revalidatePath("/admin/settings");
+    for (const locale of ["fr", "en", "ar"] as const) {
+      revalidatePath(`/${locale}`);
+      revalidatePath(`/${locale}/contact`);
+      revalidatePath(`/${locale}/shop`);
+      revalidatePath(`/${locale}/about`);
+    }
     revalidatePath("/");
     return { ok: true };
   } catch (error) {

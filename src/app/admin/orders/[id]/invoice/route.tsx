@@ -24,7 +24,15 @@ export async function GET(
   });
   if (!order) notFound();
 
-  const buffer = await renderToBuffer(<InvoiceDocument order={order} />);
+  const buffer = await renderToBuffer(
+    <InvoiceDocument
+      order={{
+        ...order,
+        shippingMethodName: null,
+      }}
+      title="Invoice"
+    />,
+  );
 
   return new Response(new Uint8Array(buffer), {
     headers: {

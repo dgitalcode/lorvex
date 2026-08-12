@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { siteConfig, type Locale } from "@/config/site";
+import type { Locale } from "@/config/site";
 import { getWhatsAppStrings } from "@/i18n/auth-strings";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,13 @@ function WhatsAppGlyph({ className }: { className?: string }) {
   );
 }
 
-export function WhatsAppButton({ locale }: { locale: Locale }) {
+export function WhatsAppButton({
+  locale,
+  whatsappNumber,
+}: {
+  locale: Locale;
+  whatsappNumber: string;
+}) {
   const t = getWhatsAppStrings(locale);
   const reduce = useReducedMotion();
   const [ready, setReady] = useState(false);
@@ -30,7 +36,8 @@ export function WhatsAppButton({ locale }: { locale: Locale }) {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const number = siteConfig.whatsapp.replace(/\D/g, "");
+  const number = whatsappNumber.replace(/\D/g, "");
+  if (!number) return null;
   const href = `https://wa.me/${number}?text=${encodeURIComponent(t.prefill)}`;
 
   return (

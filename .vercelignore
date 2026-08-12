@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.env.production.local
+.env.local
+backups/
+*.pem
+*.key
+scripts/push-prod-schema.mjs
+scripts/seed-prod.mjs
+scripts/verify-prod-db-host.mjs
+scripts/verify-prod-tables.mjs
+scripts/update-prod-urls.mjs

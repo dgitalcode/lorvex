@@ -8,7 +8,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     prisma.collection.findMany({ select: { slug: true, updatedAt: true } }),
   ]).catch(() => [[], []] as const);
   const [products, collections] = catalog;
-  const staticPaths = ["", "/shop", "/collections", "/about", "/contact", "/faq", "/search"];
+  const staticPaths = [
+    "",
+    "/shop",
+    "/collections",
+    "/about",
+    "/contact",
+    "/faq",
+    "/search",
+    "/legal/privacy",
+    "/legal/terms",
+  ];
   const entries: MetadataRoute.Sitemap = [];
   for (const locale of siteConfig.locales) {
     entries.push(...staticPaths.map((path) => ({ url: `${siteConfig.url}/${locale}${path}`, lastModified: new Date(), changeFrequency: path === "" ? "daily" as const : "weekly" as const, priority: path === "" ? 1 : .7 })));

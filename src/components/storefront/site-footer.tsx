@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { siteConfig, type Locale } from "@/config/site";
+import type { Locale } from "@/config/site";
 import type { Dictionary } from "@/i18n/dictionaries";
+import type { StorefrontSettings } from "@/lib/storefront-settings";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
 import { InfiniteMarquee } from "@/components/luxury/marquee";
 
 export function SiteFooter({
   locale,
   dictionary,
+  settings,
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  settings: StorefrontSettings;
 }) {
   const year = new Date().getFullYear();
 
@@ -51,7 +54,7 @@ export function SiteFooter({
           "Authenticité",
           "Conciergerie",
           "Éditions Limitées",
-          siteConfig.name,
+          settings.siteName,
         ]}
         speed={36}
       />
@@ -59,11 +62,36 @@ export function SiteFooter({
       <div className="luxury-container section-pad grid gap-12 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <p className="font-display text-5xl tracking-[0.22em] md:text-6xl">
-            {siteConfig.name}
+            {settings.siteName}
           </p>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
-            {siteConfig.description[locale]}
+            {settings.tagline ||
+              (locale === "ar"
+                ? "صناعة الساعات الفاخرة في المغرب"
+                : locale === "en"
+                  ? "Luxury watchmaking in Morocco"
+                  : "L'horlogerie de luxe au Maroc")}
           </p>
+          {(settings.supportEmail || settings.supportPhone) && (
+            <div className="mt-6 space-y-1 text-sm text-muted-foreground">
+              {settings.supportEmail ? (
+                <a
+                  href={`mailto:${settings.supportEmail}`}
+                  className="block transition-colors hover:text-accent"
+                >
+                  {settings.supportEmail}
+                </a>
+              ) : null}
+              {settings.supportPhone ? (
+                <a
+                  href={`tel:${settings.supportPhone.replaceAll(" ", "")}`}
+                  className="block transition-colors hover:text-accent"
+                >
+                  {settings.supportPhone}
+                </a>
+              ) : null}
+            </div>
+          )}
           <div className="mt-10">
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
               {dictionary.footer.newsletter}
@@ -98,11 +126,11 @@ export function SiteFooter({
       <div className="border-t border-border">
         <div className="luxury-container flex flex-col gap-3 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {year} {siteConfig.name}. {dictionary.footer.rights}
+            © {year} {settings.siteName}. {dictionary.footer.rights}
           </p>
           <div className="flex gap-4">
             <a
-              href={siteConfig.social.instagram}
+              href={settings.socialInstagram}
               target="_blank"
               rel="noreferrer"
               className="transition-colors hover:text-foreground"
@@ -110,7 +138,7 @@ export function SiteFooter({
               Instagram
             </a>
             <a
-              href={siteConfig.social.facebook}
+              href={settings.socialFacebook}
               target="_blank"
               rel="noreferrer"
               className="transition-colors hover:text-foreground"
@@ -118,7 +146,7 @@ export function SiteFooter({
               Facebook
             </a>
             <a
-              href={siteConfig.social.tiktok}
+              href={settings.socialTikTok}
               target="_blank"
               rel="noreferrer"
               className="transition-colors hover:text-foreground"

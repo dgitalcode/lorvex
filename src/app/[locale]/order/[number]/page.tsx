@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Download } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
@@ -7,6 +7,29 @@ import { isLocale } from "@/i18n/get-dictionary";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Order confirmed", robots: { index: false } };
+
+function paymentCopy(
+  locale: string,
+  method: string,
+  paymentStatus: string,
+) {
+  if (method === "COD") {
+    if (locale === "ar") {
+      return "الدفع عند الاستلام · الحالة: في انتظار الدفع (غير مدفوع مسبقًا)";
+    }
+    if (locale === "en") {
+      return "Cash on delivery · Status: awaiting payment (not prepaid)";
+    }
+    return "Paiement à la livraison (COD) · Statut : en attente de paiement (non prépayé)";
+  }
+  if (locale === "ar") {
+    return `طريقة الدفع: ${method} · حالة الدفع: ${paymentStatus}`;
+  }
+  if (locale === "en") {
+    return `Payment method: ${method} · Payment status: ${paymentStatus}`;
+  }
+  return `Mode de paiement : ${method} · Statut du paiement : ${paymentStatus}`;
+}
 
 export default async function OrderPage({
   params,
@@ -24,6 +47,13 @@ export default async function OrderPage({
     },
   });
   if (!order) notFound();
+
+  const downloadLabel =
+    locale === "ar"
+      ? "تحميل الإيصال"
+      : locale === "en"
+        ? "Download receipt"
+        : "Télécharger le bon";
 
   return (
     <div className="luxury-container pb-24 page-pad">
@@ -65,6 +95,29 @@ export default async function OrderPage({
             </>
           )}
         </p>
+
+        <p className="mt-4 text-sm text-muted-foreground">
+          {paymentCopy(locale, order.paymentMethod, order.paymentStatus)}
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button asChild size="lg">
+            <a href={`/api/orders/${order.number}/receipt`}>
+              <Download className="me-2 h-4 w-4" />
+              {downloadLabel}
+            </a>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href={`/${locale}/shop`}>
+              {locale === "ar"
+                ? "متابعة الاستكشاف"
+                : locale === "en"
+                  ? "Continue exploring"
+                  : "Continuer l'exploration"}
+            </Link>
+          </Button>
+        </div>
+
         <div className="mt-10 border border-border/80 bg-card p-7 shadow-[var(--shadow-soft)] md:p-9">
           <h2 className="font-display text-3xl">
             {locale === "ar"
@@ -91,11 +144,29 @@ export default async function OrderPage({
               </div>
             ))}
           </div>
-          <div className="mt-5 flex justify-between border-t border-border/80 pt-5 text-lg">
-            <strong>Total</strong>
-            <strong className="tabular-nums">
-              {formatPrice(Number(order.grandTotal), order.currency)}
-            </strong>
+          <div className="mt-5 space-y-2 border-t border-border/80 pt-5 text-sm">
+            <div className="flex justify-between text-muted-foreground">
+              <span>
+                {locale === "ar" ? "المجموع الفرعي" : locale === "en" ? "Subtotal" : "Sous-total"}
+              </span>
+              <span className="tabular-nums">
+                {formatPrice(Number(order.subtotal), order.currency)}
+              </span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>
+                {locale === "ar" ? "الشحن" : locale === "en" ? "Shipping" : "Livraison"}
+              </span>
+              <span className="tabular-nums">
+                {formatPrice(Number(order.shippingTotal), order.currency)}
+              </span>
+            </div>
+            <div className="flex justify-between text-lg">
+              <strong>Total</strong>
+              <strong className="tabular-nums">
+                {formatPrice(Number(order.grandTotal), order.currency)}
+              </strong>
+            </div>
           </div>
           {order.shippingAddress && (
             <div className="mt-7 border-t border-border/80 pt-6 text-sm text-muted-foreground">
@@ -119,15 +190,6 @@ export default async function OrderPage({
             </div>
           )}
         </div>
-        <Button asChild size="lg" className="mt-8">
-          <Link href={`/${locale}/shop`}>
-            {locale === "ar"
-              ? "متابعة الاستكشاف"
-              : locale === "en"
-                ? "Continue exploring"
-                : "Continuer l'exploration"}
-          </Link>
-        </Button>
       </div>
     </div>
   );
