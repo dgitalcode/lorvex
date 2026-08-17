@@ -12,11 +12,20 @@ export type CmsDocumentKey = (typeof CMS_DOCUMENT_KEYS)[number];
 export const heroSectionContentSchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  /** Preferred media mode for the storefront Hero. */
+  mediaType: z.enum(["image", "video", "none"]).optional(),
   videoUrl: z.string().optional(),
   imageUrl: z.string().optional(),
+  /** Poster / fallback image shown while video loads or when autoplay fails. */
+  posterUrl: z.string().optional(),
+  imagePublicId: z.string().optional(),
+  videoPublicId: z.string().optional(),
+  posterPublicId: z.string().optional(),
   ctaPrimaryHref: z.string().optional(),
   ctaSecondaryHref: z.string().optional(),
 });
+
+export type HeroSectionContent = z.infer<typeof heroSectionContentSchema>;
 
 export const statsSectionContentSchema = z.object({
   items: z.array(

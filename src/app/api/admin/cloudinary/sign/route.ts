@@ -3,10 +3,18 @@ import {
   createSignedUploadParams,
   getCloudinaryConfigStatus,
   isCloudinaryConfigured,
+  type CloudinaryResourceType,
 } from "@/lib/cloudinary";
 import { assertPermission } from "@/server/auth/require-admin";
 
-export async function POST() {
+const ALLOWED_FOLDERS = new Set(["lorvex", "lorvex/hero", "lorvex/media"]);
+const ALLOWED_RESOURCE_TYPES = new Set<CloudinaryResourceType>([
+  "image",
+  "video",
+  "auto",
+]);
+
+export async function POST(request: Request) {
   try {
     await assertPermission("media.manage");
   } catch (error) {
@@ -28,6 +36,25 @@ export async function POST() {
     );
   }
 
-  const params = createSignedUploadParams("lorvex");
+  let body: {
+    folder?: string;
+    resourceType?: CloudinaryResourceType;
+  } = {};
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    body = {};
+  }
+
+  const folder =
+    typeof body.folder === "string" && ALLOWED_FOLDERS.has(body.folder)
+      ? body.folder
+      : "lorvex/hero";
+  const resourceType =
+    body.resourceType && ALLOWED_RESOURCE_TYPES.has(body.resourceType)
+      ? body.resourceType
+      : "auto";
+
+  const params = createSignedUploadParams(folder, { resourceType });
   return NextResponse.json(params);
 }

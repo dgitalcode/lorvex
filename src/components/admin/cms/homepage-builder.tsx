@@ -50,6 +50,7 @@ import type {
   HomepageDocumentContent,
   HomepageSectionInput,
 } from "@/server/validations/admin/cms";
+import { HeroMediaManager } from "@/components/admin/cms/hero-media-manager";
 
 type HistoryState = {
   past: HomepageDocumentContent[];
@@ -149,9 +150,11 @@ function SortableSectionRow({
 function HeroFields({
   content,
   onChange,
+  cloudinaryConfigured,
 }: {
   content: Record<string, unknown>;
   onChange: (next: Record<string, unknown>) => void;
+  cloudinaryConfigured: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -172,22 +175,13 @@ function HeroFields({
           onChange={(e) => onChange({ ...content, subtitle: e.target.value })}
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="hero-image">Image URL</Label>
-        <Input
-          id="hero-image"
-          value={String(content.imageUrl ?? "")}
-          onChange={(e) => onChange({ ...content, imageUrl: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="hero-video">Video URL</Label>
-        <Input
-          id="hero-video"
-          value={String(content.videoUrl ?? "")}
-          onChange={(e) => onChange({ ...content, videoUrl: e.target.value })}
-        />
-      </div>
+
+      <HeroMediaManager
+        content={content}
+        onChange={onChange}
+        cloudinaryConfigured={cloudinaryConfigured}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="hero-cta-primary">Primary CTA href</Label>
@@ -291,6 +285,7 @@ export function HomepageBuilder({
   initialContent,
   liveSections,
   versions,
+  cloudinaryConfigured = true,
 }: {
   documentId: string;
   documentStatus: string;
@@ -310,6 +305,7 @@ export function HomepageBuilder({
     createdAt: string;
     author: string;
   }[];
+  cloudinaryConfigured?: boolean;
 }) {
   const [history, dispatchHistory] = useReducer(historyReducer, {
     past: [],
@@ -601,6 +597,7 @@ export function HomepageBuilder({
                 {selectedSection.type === "hero" && (
                   <HeroFields
                     content={selectedSection.content}
+                    cloudinaryConfigured={cloudinaryConfigured}
                     onChange={(content) =>
                       updateSection(selectedSection.key, { content })
                     }

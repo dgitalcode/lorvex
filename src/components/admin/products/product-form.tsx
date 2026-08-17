@@ -81,7 +81,14 @@ export function ProductForm({
 
   async function uploadMedia(index: number, file: File) {
     try {
-      const signRes = await fetch("/api/admin/cloudinary/sign");
+      const signRes = await fetch("/api/admin/cloudinary/sign", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          folder: "lorvex",
+          resourceType: file.type.startsWith("video/") ? "video" : "image",
+        }),
+      });
       if (!signRes.ok) throw new Error("Upload not configured");
       const sign = (await signRes.json()) as {
         cloudName: string;
@@ -89,6 +96,7 @@ export function ProductForm({
         timestamp: number;
         folder: string;
         signature: string;
+        uploadUrl?: string;
       };
       const body = new FormData();
       body.append("file", file);
@@ -97,7 +105,8 @@ export function ProductForm({
       body.append("folder", sign.folder);
       body.append("signature", sign.signature);
       const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${sign.cloudName}/auto/upload`,
+        sign.uploadUrl ??
+          `https://api.cloudinary.com/v1_1/${sign.cloudName}/auto/upload`,
         { method: "POST", body },
       );
       if (!uploadRes.ok) throw new Error("Upload failed");

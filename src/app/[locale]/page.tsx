@@ -5,7 +5,6 @@ import { siteConfig } from "@/config/site";
 import {
   HeroSection,
   ProductRail,
-  HorizontalProductRail,
   CollectionsSection,
   WhyChooseUs,
   StatsSection,
@@ -83,16 +82,38 @@ export default async function HomePage({
     | {
         title?: string;
         subtitle?: string;
+        mediaType?: "image" | "video" | "none";
         videoUrl?: string;
         imageUrl?: string;
+        posterUrl?: string;
         ctaPrimaryHref?: string;
         ctaSecondaryHref?: string;
       }
     | undefined;
 
+  const mediaType =
+    heroContent?.mediaType ??
+    (heroContent?.videoUrl?.trim()
+      ? "video"
+      : heroContent?.imageUrl?.trim()
+        ? "image"
+        : "none");
+
   const hero = {
     ...heroContent,
-    imageUrl: heroContent?.imageUrl || "/images/lorvex/hero.jpg",
+    mediaType,
+    imageUrl:
+      mediaType === "none"
+        ? "/images/lorvex/hero.jpg"
+        : heroContent?.imageUrl?.trim() ||
+          heroContent?.posterUrl?.trim() ||
+          "/images/lorvex/hero.jpg",
+    posterUrl:
+      heroContent?.posterUrl?.trim() ||
+      heroContent?.imageUrl?.trim() ||
+      "/images/lorvex/hero.jpg",
+    videoUrl:
+      mediaType === "video" ? heroContent?.videoUrl?.trim() || undefined : undefined,
   };
 
   return (
@@ -128,10 +149,12 @@ export default async function HomePage({
         products={arrivals}
         viewAllLabel={dictionary.common.viewAll}
       />
-      <HorizontalProductRail
+      <ProductRail
         locale={locale}
         title={dictionary.sections.limited}
+        href={`/${locale}/shop?limited=1`}
         products={limited.length ? limited : featured.slice(0, 4)}
+        viewAllLabel={dictionary.common.viewAll}
       />
       <ProductRail
         locale={locale}

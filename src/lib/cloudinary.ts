@@ -6,6 +6,8 @@ const cloudName =
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
+export type CloudinaryResourceType = "image" | "video" | "auto" | "raw";
+
 export function isCloudinaryConfigured() {
   return Boolean(cloudName && apiKey && apiSecret);
 }
@@ -31,27 +33,38 @@ if (isCloudinaryConfigured()) {
   });
 }
 
-export function createSignedUploadParams(folder = "lorvex") {
+export function createSignedUploadParams(
+  folder = "lorvex",
+  options?: { resourceType?: CloudinaryResourceType },
+) {
   if (!isCloudinaryConfigured()) {
     throw new Error("Cloudinary is not configured");
   }
   const timestamp = Math.round(Date.now() / 1000);
   const params = { timestamp, folder };
   const signature = cloudinary.utils.api_sign_request(params, apiSecret!);
+  const resourceType = options?.resourceType ?? "auto";
   return {
     cloudName: cloudName!,
     apiKey: apiKey!,
     timestamp,
     folder,
     signature,
+    resourceType,
+    uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
   };
 }
 
-export async function destroyCloudinaryAsset(publicId: string) {
+export async function destroyCloudinaryAsset(
+  publicId: string,
+  resourceType: CloudinaryResourceType = "image",
+) {
   if (!isCloudinaryConfigured()) {
     throw new Error("Cloudinary is not configured");
   }
-  return cloudinary.uploader.destroy(publicId);
+  return cloudinary.uploader.destroy(publicId, {
+    resource_type: resourceType === "auto" ? "image" : resourceType,
+  });
 }
 
 export async function getCloudinaryUsage() {

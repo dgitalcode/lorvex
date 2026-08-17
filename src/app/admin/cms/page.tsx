@@ -4,6 +4,7 @@ import {
   getLiveHomepageSections,
 } from "@/server/actions/admin/cms";
 import { requirePermission } from "@/server/auth/require-admin";
+import { isCloudinaryConfigured } from "@/lib/cloudinary";
 import { AdminBreadcrumb, AdminPageHeader } from "@/components/admin/page-header";
 import { HomepageBuilder } from "@/components/admin/cms/homepage-builder";
 import {
@@ -51,6 +52,7 @@ export default async function AdminCmsHomepagePage() {
         scheduledAt={document.scheduledAt?.toISOString() ?? null}
         publishedAt={document.publishedAt?.toISOString() ?? null}
         initialContent={draftContent}
+        cloudinaryConfigured={isCloudinaryConfigured()}
         liveSections={liveSections.map((section) => ({
           key: section.key,
           type: section.type,

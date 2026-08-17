@@ -63,7 +63,13 @@ export function HorizontalScroll({
       <div className="overflow-hidden">
         <div
           ref={trackRef}
-          className="flex w-max gap-5 px-[clamp(1.25rem,4vw,3rem)] pb-16 will-change-transform md:gap-7"
+          className="flex w-max gap-5 pb-16 will-change-transform md:gap-7"
+          style={{
+            // Match `.luxury-container` inset (centered max-width 1440 + clamp padding)
+            paddingInlineStart:
+              "max(clamp(1.25rem, 4vw, 3rem), calc((100vw - 1440px) / 2 + clamp(1.25rem, 4vw, 3rem)))",
+            paddingInlineEnd: "clamp(1.25rem, 4vw, 3rem)",
+          }}
         >
           {children}
         </div>

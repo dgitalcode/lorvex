@@ -12,9 +12,36 @@ import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/config/site";
 
-const DEFAULT_VIDEO =
-  "https://videos.pexels.com/video-files/6827405/6827405-uhd_2560_1440_25fps.mp4";
 const DEFAULT_IMAGE = "/images/lorvex/hero.jpg";
+
+export type HeroMediaType = "image" | "video" | "none";
+
+export type CinematicHeroContent = {
+  title?: string;
+  subtitle?: string;
+  mediaType?: HeroMediaType;
+  videoUrl?: string;
+  imageUrl?: string;
+  posterUrl?: string;
+  ctaPrimaryHref?: string;
+  ctaSecondaryHref?: string;
+};
+
+function resolveMediaType(content?: CinematicHeroContent): HeroMediaType {
+  if (content?.mediaType === "image" || content?.mediaType === "video" || content?.mediaType === "none") {
+    return content.mediaType;
+  }
+  if (content?.videoUrl?.trim()) return "video";
+  if (content?.imageUrl?.trim()) return "image";
+  return "none";
+}
+
+function videoMimeFromUrl(url: string): string | undefined {
+  const clean = url.split("?")[0]?.toLowerCase() ?? "";
+  if (clean.endsWith(".webm")) return "video/webm";
+  if (clean.endsWith(".mp4")) return "video/mp4";
+  return undefined;
+}
 
 export function CinematicHero({
   locale,
@@ -23,37 +50,57 @@ export function CinematicHero({
 }: {
   locale: Locale;
   dictionary: Dictionary;
-  content?: {
-    title?: string;
-    subtitle?: string;
-    videoUrl?: string;
-    imageUrl?: string;
-    ctaPrimaryHref?: string;
-    ctaSecondaryHref?: string;
-  };
+  content?: CinematicHeroContent;
 }) {
   const reduce = useReducedMotion();
   const rootRef = useRef<HTMLElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoOk, setVideoOk] = useState(true);
+  const [failedVideoUrl, setFailedVideoUrl] = useState<string | null>(null);
 
-  const imageUrl = content?.imageUrl || DEFAULT_IMAGE;
-  const videoUrl = content?.videoUrl ?? DEFAULT_VIDEO;
+  const mediaType = resolveMediaType(content);
+  const posterUrl =
+    content?.posterUrl?.trim() ||
+    content?.imageUrl?.trim() ||
+    DEFAULT_IMAGE;
+  const imageUrl =
+    mediaType === "none"
+      ? DEFAULT_IMAGE
+      : content?.imageUrl?.trim() || posterUrl || DEFAULT_IMAGE;
+  const videoUrl =
+    mediaType === "video" ? content?.videoUrl?.trim() || "" : "";
+  const videoOk = Boolean(videoUrl) && !reduce && failedVideoUrl !== videoUrl;
+  const showVideo = videoOk;
   const title = content?.title ?? dictionary.hero.title;
+  const mime = videoUrl ? videoMimeFromUrl(videoUrl) : undefined;
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || reduce) {
-      setVideoOk(false);
-      return;
-    }
-    const fail = () => setVideoOk(false);
+    if (!video || !showVideo || !videoUrl) return;
+
+    const fail = () => setFailedVideoUrl(videoUrl);
+    const tryPlay = () => {
+      video.muted = true;
+      video.playsInline = true;
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(fail);
+      }
+    };
+
     video.addEventListener("error", fail);
-    video.play().catch(fail);
-    return () => video.removeEventListener("error", fail);
-  }, [reduce, videoUrl]);
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.addEventListener("loadeddata", tryPlay, { once: true });
+    }
+
+    return () => {
+      video.removeEventListener("error", fail);
+      video.removeEventListener("loadeddata", tryPlay);
+    };
+  }, [showVideo, videoUrl]);
 
   useGSAP(
     () => {
@@ -106,17 +153,24 @@ export function CinematicHero({
             sizes="100vw"
             aria-hidden
           />
-          {videoOk && !reduce ? (
+          {showVideo ? (
             <video
+              key={videoUrl}
               ref={videoRef}
               className="absolute inset-0 h-full w-full object-cover"
               autoPlay
               muted
               loop
               playsInline
-              poster={imageUrl}
+              preload="metadata"
+              poster={posterUrl}
+              aria-hidden
             >
-              <source src={videoUrl} type="video/mp4" />
+              {mime ? (
+                <source src={videoUrl} type={mime} />
+              ) : (
+                <source src={videoUrl} />
+              )}
             </video>
           ) : null}
         </div>

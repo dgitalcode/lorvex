@@ -36,6 +36,8 @@ type CloudinarySign = {
   timestamp: number;
   folder: string;
   signature: string;
+  resourceType?: string;
+  uploadUrl?: string;
 };
 
 function formatBytes(bytes: number | null) {
@@ -81,7 +83,8 @@ export function MediaLibrary({
       formData.append("signature", sign.signature);
 
       const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${sign.cloudName}/auto/upload`,
+        sign.uploadUrl ??
+          `https://api.cloudinary.com/v1_1/${sign.cloudName}/auto/upload`,
         { method: "POST", body: formData },
       );
       if (!uploadRes.ok) throw new Error("Cloudinary upload failed.");

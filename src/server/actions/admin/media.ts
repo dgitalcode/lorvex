@@ -47,6 +47,26 @@ export async function registerMediaAsset(
     const user = await assertPermission("media.manage");
     const data = registerMediaAssetSchema.parse(input);
 
+    const format = data.format?.toLowerCase() ?? null;
+    if (data.type === "video") {
+      if (format && !["mp4", "webm"].includes(format)) {
+        return { ok: false, error: "Unsupported video format. Use MP4 or WEBM." };
+      }
+      if (data.bytes != null && data.bytes > 80 * 1024 * 1024) {
+        return { ok: false, error: "Video must be under 80 MB." };
+      }
+    } else if (data.type === "image") {
+      if (format && !["jpg", "jpeg", "png", "webp", "avif"].includes(format)) {
+        return {
+          ok: false,
+          error: "Unsupported image format. Use JPG, PNG, WEBP or AVIF.",
+        };
+      }
+      if (data.bytes != null && data.bytes > 8 * 1024 * 1024) {
+        return { ok: false, error: "Image must be under 8 MB." };
+      }
+    }
+
     const asset = await prisma.mediaAsset.create({
       data: {
         publicId: data.publicId,
@@ -89,7 +109,12 @@ export async function deleteMediaAsset(id: string): Promise<MediaActionResult> {
 
     if (isCloudinaryConfigured() && asset.publicId) {
       try {
-        await destroyCloudinaryAsset(asset.publicId);
+        const resourceType =
+          asset.type === "video" || asset.type === "raw" ? asset.type : "image";
+        await destroyCloudinaryAsset(
+          asset.publicId,
+          resourceType as "image" | "video" | "raw",
+        );
       } catch {
         // Keep DB cleanup even if remote delete fails.
       }

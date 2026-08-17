@@ -3,7 +3,7 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/shared/motion";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
-import { CinematicHero } from "@/components/luxury/cinematic-hero";
+import { CinematicHero, type CinematicHeroContent } from "@/components/luxury/cinematic-hero";
 import { ImageReveal } from "@/components/luxury/image-reveal";
 import { HorizontalScroll } from "@/components/luxury/horizontal-scroll";
 import { Magnetic } from "@/components/luxury/magnetic";
@@ -19,14 +19,7 @@ export function HeroSection({
 }: {
   locale: Locale;
   dictionary: Dictionary;
-  content?: {
-    title?: string;
-    subtitle?: string;
-    videoUrl?: string;
-    imageUrl?: string;
-    ctaPrimaryHref?: string;
-    ctaSecondaryHref?: string;
-  };
+  content?: CinematicHeroContent;
 }) {
   return (
     <CinematicHero locale={locale} dictionary={dictionary} content={content} />
