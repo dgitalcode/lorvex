@@ -62,7 +62,12 @@ export function SystemOperationsPanel({
     bandwidth?: { usage?: number; limit?: number };
   } | null;
   emailStatus: { configured: boolean; from: string; missing: string[] };
-  cloudinaryStatus: { configured: boolean; cloudName: string | null; missing: string[] };
+  cloudinaryStatus: {
+    configured: boolean;
+    cloudName: string | null;
+    missing: string[];
+    error?: string | null;
+  };
   canManage: boolean;
 }) {
   const router = useRouter();
@@ -129,9 +134,15 @@ export function SystemOperationsPanel({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Cloudinary"
-          value={cloudinaryStatus.configured ? "Configured" : "Missing"}
+          value={cloudinaryStatus.configured ? "Configured" : "Broken"}
           icon={HardDrive}
-          hint={cloudinaryStatus.cloudName ?? "Not connected"}
+          hint={
+            cloudinaryStatus.configured
+              ? (cloudinaryStatus.cloudName ?? "Connected")
+              : cloudinaryStatus.error ||
+                cloudinaryStatus.missing.join(", ") ||
+                "Not connected"
+          }
         />
         <StatCard
           label="Email"

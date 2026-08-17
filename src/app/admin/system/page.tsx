@@ -3,6 +3,7 @@ import {
   getCloudinaryConfigStatus,
   getCloudinaryUsage,
   isCloudinaryConfigured,
+  verifyCloudinaryConnection,
 } from "@/lib/cloudinary";
 import { getEmailConfigStatus } from "@/lib/email";
 import { requirePermission } from "@/server/auth/require-admin";
@@ -22,6 +23,7 @@ export default async function AdminSystemPage() {
     jobs,
     backups,
     cloudinaryUsage,
+    cloudinaryLive,
   ] = await Promise.all([
     prisma.systemHealthCheck.findMany({
       orderBy: { checkedAt: "desc" },
@@ -33,10 +35,17 @@ export default async function AdminSystemPage() {
       take: 10,
     }),
     isCloudinaryConfigured() ? getCloudinaryUsage().catch(() => null) : null,
+    isCloudinaryConfigured()
+      ? verifyCloudinaryConnection()
+      : Promise.resolve({ ok: false as const, error: "missing env" }),
   ]);
 
   const emailStatus = getEmailConfigStatus();
-  const cloudinaryStatus = getCloudinaryConfigStatus();
+  const cloudinaryStatus = {
+    ...getCloudinaryConfigStatus(),
+    configured: cloudinaryLive.ok,
+    error: cloudinaryLive.ok ? null : (cloudinaryLive.error ?? "Not connected"),
+  };
 
   return (
     <SystemOperationsPanel

@@ -108,23 +108,46 @@ function uploadWithProgress(
       onProgress(Math.round((event.loaded / event.total) * 100));
     };
     xhr.onload = () => {
+      type CloudinaryUploadBody = {
+        public_id?: string;
+        secure_url?: string;
+        resource_type?: string;
+        format?: string;
+        width?: number;
+        height?: number;
+        bytes?: number;
+        error?: { message?: string };
+      };
+      let body: CloudinaryUploadBody | null = null;
+      try {
+        body = JSON.parse(xhr.responseText) as CloudinaryUploadBody;
+      } catch {
+        body = null;
+      }
       if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new Error("Cloudinary upload failed."));
+        const detail = body?.error?.message;
+        reject(
+          new Error(
+            detail
+              ? `Cloudinary: ${detail}`
+              : `Cloudinary upload failed (HTTP ${xhr.status}).`,
+          ),
+        );
         return;
       }
-      try {
-        resolve(JSON.parse(xhr.responseText) as {
-          public_id: string;
-          secure_url: string;
-          resource_type: string;
-          format?: string;
-          width?: number;
-          height?: number;
-          bytes?: number;
-        });
-      } catch {
+      if (!body?.public_id || !body.secure_url || !body.resource_type) {
         reject(new Error("Invalid Cloudinary response."));
+        return;
       }
+      resolve({
+        public_id: body.public_id,
+        secure_url: body.secure_url,
+        resource_type: body.resource_type,
+        format: body.format,
+        width: body.width,
+        height: body.height,
+        bytes: body.bytes,
+      });
     };
     xhr.onerror = () => reject(new Error("Network error during upload."));
     const formData = new FormData();
@@ -258,19 +281,20 @@ export function HeroMediaManager({
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex w-full flex-wrap gap-2">
         {(["image", "video", "none"] as const).map((type) => (
           <Button
             key={type}
             type="button"
             size="sm"
+            className="min-w-0 flex-1 sm:flex-none"
             variant={mediaType === type ? "default" : "outline"}
             onClick={() => patch({ mediaType: type })}
           >
             {type === "image" ? (
-              <ImageIcon className="mr-2 h-3.5 w-3.5" />
+              <ImageIcon className="mr-2 h-3.5 w-3.5 shrink-0" />
             ) : type === "video" ? (
-              <Film className="mr-2 h-3.5 w-3.5" />
+              <Film className="mr-2 h-3.5 w-3.5 shrink-0" />
             ) : null}
             {type === "none" ? "None / fallback" : type.toUpperCase()}
           </Button>

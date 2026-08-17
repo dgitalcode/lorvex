@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useReducer, useState, useTransition } from "react";
+import { useCallback, useMemo, useReducer, useState, useTransition, type CSSProperties } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -502,10 +502,12 @@ export function HomepageBuilder({
       </div>
 
       <div
-        className="grid min-h-[640px] gap-0 border border-border"
-        style={{
-          gridTemplateColumns: `minmax(0, 1fr) 4px minmax(280px, ${previewWidth}px)`,
-        }}
+        className="grid min-h-[640px] grid-cols-1 gap-0 border border-border lg:[grid-template-columns:minmax(0,1fr)_4px_minmax(280px,var(--preview-w))]"
+        style={
+          {
+            ["--preview-w" as string]: `${previewWidth}px`,
+          } as CSSProperties
+        }
       >
         <div className="grid min-h-0 grid-cols-1 gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
           <div className="border-b border-border lg:border-b-0 lg:border-r">

@@ -3,6 +3,7 @@ import {
   createSignedUploadParams,
   getCloudinaryConfigStatus,
   isCloudinaryConfigured,
+  verifyCloudinaryConnection,
   type CloudinaryResourceType,
 } from "@/lib/cloudinary";
 import { assertPermission } from "@/server/auth/require-admin";
@@ -31,6 +32,19 @@ export async function POST(request: Request) {
       {
         error: "Cloudinary is not configured.",
         missing: status.missing,
+      },
+      { status: 503 },
+    );
+  }
+
+  const live = await verifyCloudinaryConnection();
+  if (!live.ok) {
+    return NextResponse.json(
+      {
+        error:
+          live.error === "cloud_name mismatch"
+            ? "Cloudinary cloud_name mismatch: CLOUDINARY_CLOUD_NAME does not match your API key. Copy the exact Cloud name from the Cloudinary console."
+            : `Cloudinary credentials invalid: ${live.error ?? "connection failed"}`,
       },
       { status: 503 },
     );

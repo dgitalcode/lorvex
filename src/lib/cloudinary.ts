@@ -1,10 +1,13 @@
 import { v2 as cloudinary } from "cloudinary";
 
+function env(name: string) {
+  return process.env[name]?.trim() || "";
+}
+
 const cloudName =
-  process.env.CLOUDINARY_CLOUD_NAME ||
-  process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const apiKey = process.env.CLOUDINARY_API_KEY;
-const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  env("CLOUDINARY_CLOUD_NAME") || env("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME");
+const apiKey = env("CLOUDINARY_API_KEY");
+const apiSecret = env("CLOUDINARY_API_SECRET");
 
 export type CloudinaryResourceType = "image" | "video" | "auto" | "raw";
 
@@ -31,6 +34,33 @@ if (isCloudinaryConfigured()) {
     api_secret: apiSecret,
     secure: true,
   });
+}
+
+/** Live credential check — catches cloud_name / key mismatches that env presence alone misses. */
+export async function verifyCloudinaryConnection(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  if (!isCloudinaryConfigured()) {
+    return { ok: false, error: "Cloudinary env vars are missing." };
+  }
+  try {
+    await cloudinary.api.ping();
+    return { ok: true };
+  } catch (error) {
+    const message =
+      error &&
+      typeof error === "object" &&
+      "error" in error &&
+      error.error &&
+      typeof error.error === "object" &&
+      "message" in error.error
+        ? String((error.error as { message?: string }).message)
+        : error instanceof Error
+          ? error.message
+          : "Cloudinary connection failed.";
+    return { ok: false, error: message };
+  }
 }
 
 export function createSignedUploadParams(

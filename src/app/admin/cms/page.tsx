@@ -4,7 +4,7 @@ import {
   getLiveHomepageSections,
 } from "@/server/actions/admin/cms";
 import { requirePermission } from "@/server/auth/require-admin";
-import { isCloudinaryConfigured } from "@/lib/cloudinary";
+import { isCloudinaryConfigured, verifyCloudinaryConnection } from "@/lib/cloudinary";
 import { AdminBreadcrumb, AdminPageHeader } from "@/components/admin/page-header";
 import { HomepageBuilder } from "@/components/admin/cms/homepage-builder";
 import {
@@ -17,7 +17,7 @@ export const metadata = { title: "Homepage builder" };
 export default async function AdminCmsHomepagePage() {
   await requirePermission("cms.view");
 
-  const [document, liveSections] = await Promise.all([
+  const [document, liveSections, cloudinaryLive] = await Promise.all([
     ensureCmsDocument(
       "homepage",
       "homepage",
@@ -25,6 +25,9 @@ export default async function AdminCmsHomepagePage() {
       bootstrapHomepageContent,
     ),
     getLiveHomepageSections(),
+    isCloudinaryConfigured()
+      ? verifyCloudinaryConnection()
+      : Promise.resolve({ ok: false as const, error: "missing" }),
   ]);
 
   const latestVersion = document.versions[0];
@@ -46,13 +49,21 @@ export default async function AdminCmsHomepagePage() {
         title="Homepage builder"
         description="Reorder homepage sections, edit hero and stats content, save drafts, and publish to the live storefront."
       />
+      {!cloudinaryLive.ok ? (
+        <div className="border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+          Cloudinary is not ready
+          {cloudinaryLive.error && cloudinaryLive.error !== "missing"
+            ? `: ${cloudinaryLive.error}`
+            : ". Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET (cloud name must match the API key)."}
+        </div>
+      ) : null}
       <HomepageBuilder
         documentId={document.id}
         documentStatus={document.status}
         scheduledAt={document.scheduledAt?.toISOString() ?? null}
         publishedAt={document.publishedAt?.toISOString() ?? null}
         initialContent={draftContent}
-        cloudinaryConfigured={isCloudinaryConfigured()}
+        cloudinaryConfigured={cloudinaryLive.ok}
         liveSections={liveSections.map((section) => ({
           key: section.key,
           type: section.type,
