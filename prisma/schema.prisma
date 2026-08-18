@@ -1274,6 +1274,7 @@ model BackupRecord {
   path        String
   sizeBytes   Int?
   status      String
+  snapshot    Json?
   createdBy   String?
   createdAt   DateTime  @default(now())
   completedAt DateTime?

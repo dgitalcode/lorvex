@@ -1,7 +1,5 @@
 "use server";
 
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import type { Role } from "@prisma/client";
 import { revalidatePath, updateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +7,7 @@ import {
   getCloudinaryConfigStatus,
   getCloudinaryUsage,
   isCloudinaryConfigured,
+  verifyCloudinaryConnection,
 } from "@/lib/cloudinary";
 import { getEmailConfigStatus } from "@/lib/email";
 import { assertPermission } from "@/server/auth/require-admin";
@@ -145,13 +144,17 @@ export async function runHealthChecks(): Promise<SystemActionResult> {
       });
     }
 
+    const cloudinaryLive = await verifyCloudinaryConnection();
     const cloudinaryStatus = getCloudinaryConfigStatus();
     checks.push({
       service: "cloudinary",
-      status: cloudinaryStatus.configured ? "configured" : "missing_config",
-      detail: cloudinaryStatus.missing.length
-        ? `Missing: ${cloudinaryStatus.missing.join(", ")}`
-        : cloudinaryStatus.cloudName ?? undefined,
+      status: cloudinaryLive.ok ? "configured" : "missing_config",
+      detail: cloudinaryLive.ok
+        ? (cloudinaryStatus.cloudName ?? "connected")
+        : cloudinaryLive.error ??
+          (cloudinaryStatus.missing.length
+            ? `Missing: ${cloudinaryStatus.missing.join(", ")}`
+            : "Cloudinary unreachable"),
     });
 
     const emailStatus = getEmailConfigStatus();
@@ -198,22 +201,22 @@ export async function runHealthChecks(): Promise<SystemActionResult> {
 }
 
 export async function createBackupRecord(): Promise<SystemActionResult> {
+  let recordId: string | null = null;
   try {
     const user = await assertPermission("system.manage");
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `lorvex-backup-${timestamp}.json`;
-    const backupsDir = path.join(process.cwd(), "backups");
-    const filePath = path.join(backupsDir, filename);
 
     const record = await prisma.backupRecord.create({
       data: {
         filename,
-        path: filePath,
+        path: "postgres:pending",
         status: "PENDING",
         createdBy: user.id,
       },
     });
+    recordId = record.id;
 
     const [
       users,
@@ -250,14 +253,13 @@ export async function createBackupRecord(): Promise<SystemActionResult> {
       },
     };
 
-    await mkdir(backupsDir, { recursive: true });
-    const serialized = JSON.stringify(payload, null, 2);
-    await writeFile(filePath, serialized, "utf8");
-
+    const serialized = JSON.stringify(payload);
     const completed = await prisma.backupRecord.update({
       where: { id: record.id },
       data: {
+        path: `postgres:backup_records/${record.id}`,
         status: "COMPLETED",
+        snapshot: payload,
         sizeBytes: Buffer.byteLength(serialized, "utf8"),
         completedAt: new Date(),
       },
@@ -281,6 +283,14 @@ export async function createBackupRecord(): Promise<SystemActionResult> {
     revalidatePath("/admin/system");
     return { ok: true, data: { id: completed.id, filename } };
   } catch (error) {
+    if (recordId) {
+      await prisma.backupRecord
+        .update({
+          where: { id: recordId },
+          data: { status: "FAILED" },
+        })
+        .catch(() => undefined);
+    }
     return actionError(error);
   }
 }
