@@ -1,23 +1,29 @@
 import { Resend } from "resend";
+import { siteConfig } from "@/config/site";
 import { prisma } from "@/lib/prisma";
 
-const apiKey = process.env.RESEND_API_KEY;
-const from = process.env.EMAIL_FROM ?? "LORVEX <noreply@lorvex.ma>";
+function env(name: string) {
+  return process.env[name]?.trim() || "";
+}
+
+const apiKey = env("RESEND_API_KEY");
+const from = env("EMAIL_FROM") || "LORVEX <noreply@lorvex.ma>";
 
 export function isEmailConfigured() {
   return Boolean(apiKey);
 }
 
 export function getEmailConfigStatus() {
+  const missing: string[] = [];
+  if (!apiKey) missing.push("RESEND_API_KEY");
   return {
-    configured: isEmailConfigured(),
+    configured: missing.length === 0,
     from,
-    missing: !apiKey ? (["RESEND_API_KEY"] as string[]) : [],
+    missing,
   };
 }
 
 function getClient() {
-  if (!apiKey) throw new Error("Resend is not configured");
   return new Resend(apiKey);
 }
 
@@ -25,8 +31,10 @@ export async function sendTransactionalEmail(input: {
   to: string;
   subject: string;
   html: string;
+  /** Logging category only — never sent as a Resend template id. */
   template?: string;
   meta?: Record<string, unknown>;
+  idempotencyKey?: string;
 }) {
   if (!isEmailConfigured()) {
     await prisma.emailLog.create({
@@ -42,24 +50,40 @@ export async function sendTransactionalEmail(input: {
   }
 
   try {
-    const client = getClient();
-    const result = await client.emails.send({
-      from,
-      to: input.to,
-      subject: input.subject,
-      html: input.html,
-    });
+    const { data, error } = await getClient().emails.send(
+      {
+        from,
+        to: input.to,
+        subject: input.subject,
+        html: input.html,
+        replyTo: siteConfig.supportEmail,
+        tags: input.template
+          ? [{ name: "category", value: input.template.slice(0, 256) }]
+          : undefined,
+      },
+      input.idempotencyKey
+        ? { idempotencyKey: input.idempotencyKey.slice(0, 256) }
+        : undefined,
+    );
+
     await prisma.emailLog.create({
       data: {
         to: input.to,
         subject: input.subject,
         template: input.template,
-        status: result.error ? "FAILED" : "SENT",
-        meta: { ...input.meta, id: result.data?.id, error: result.error },
+        status: error ? "FAILED" : "SENT",
+        meta: {
+          ...input.meta,
+          id: data?.id,
+          error: error
+            ? { name: error.name, message: error.message }
+            : undefined,
+        },
       },
     });
-    if (result.error) return { ok: false as const, reason: "FAILED" as const };
-    return { ok: true as const, id: result.data?.id };
+
+    if (error) return { ok: false as const, reason: "FAILED" as const };
+    return { ok: true as const, id: data?.id };
   } catch (error) {
     await prisma.emailLog.create({
       data: {
@@ -69,7 +93,7 @@ export async function sendTransactionalEmail(input: {
         status: "FAILED",
         meta: {
           ...input.meta,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: error instanceof Error ? error.message : "Network error",
         },
       },
     });

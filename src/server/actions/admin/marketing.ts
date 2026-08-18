@@ -401,8 +401,8 @@ export async function sendCampaign(input: unknown): Promise<MarketingActionResul
     let failed = 0;
     const emails = subscribers.map((s) => s.email);
 
-    for (let i = 0; i < emails.length; i += 50) {
-      const batch = emails.slice(i, i + 50);
+    for (let i = 0; i < emails.length; i += 10) {
+      const batch = emails.slice(i, i + 10);
       const results = await Promise.all(
         batch.map((to) =>
           sendTransactionalEmail({
@@ -410,6 +410,7 @@ export async function sendCampaign(input: unknown): Promise<MarketingActionResul
             subject: campaign.subject!,
             html: campaign.body!,
             template: "marketing_campaign",
+            idempotencyKey: `marketing-campaign/${campaign.id}/${to}`,
             meta: { campaignId: campaign.id, campaignName: campaign.name },
           }),
         ),
@@ -810,8 +811,8 @@ export async function sendAbandonedCartReminders(): Promise<MarketingActionResul
     }
 
     let sent = 0;
-    for (let i = 0; i < snapshots.length; i += 50) {
-      const batch = snapshots.slice(i, i + 50);
+    for (let i = 0; i < snapshots.length; i += 10) {
+      const batch = snapshots.slice(i, i + 10);
       const results = await Promise.all(
         batch.map(async (snapshot) => {
           const items = snapshot.items as CartSnapshotItem[];
@@ -831,6 +832,7 @@ export async function sendAbandonedCartReminders(): Promise<MarketingActionResul
               <p><a href="${absoluteUrl("/fr/cart")}">Complete your order</a></p>
             `,
             template: "abandoned_cart",
+            idempotencyKey: `abandoned-cart/${snapshot.id}`,
             meta: { snapshotId: snapshot.id },
           });
           return { snapshot, result };

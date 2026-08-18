@@ -99,6 +99,7 @@ export async function requestPasswordReset(
     subject: mail.subject,
     html: mail.html,
     template: "password_reset",
+    idempotencyKey: `password-reset/${user.id}/${rawToken}`,
     meta: { userId: user.id, locale },
   });
 
