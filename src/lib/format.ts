@@ -1,3 +1,5 @@
+import { publicPageUrl } from "@/config/site";
+
 export function formatPrice(
   amount: number | string,
   currency: string = "MAD",
@@ -43,6 +45,5 @@ export function slugify(input: string): string {
 }
 
 export function absoluteUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+  return publicPageUrl(path.startsWith("/") ? path : `/${path}`);
 }

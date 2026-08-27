@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { CartView } from "@/components/storefront/cart-view";
 import { isLocale } from "@/i18n/get-dictionary";
 
-export const metadata = { title: "Cart" };
+export const metadata = { title: "Cart", robots: { index: false, follow: false } };
 
 export default async function CartPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

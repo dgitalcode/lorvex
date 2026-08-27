@@ -1,10 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
+import { publicPageUrl } from "@/config/site";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Collections" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  return {
+    title: "Collections",
+    alternates: { canonical: publicPageUrl(`/${locale}/collections`) },
+  };
+}
 
 export default async function CollectionsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

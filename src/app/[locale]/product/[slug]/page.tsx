@@ -11,19 +11,27 @@ import {
   getRecentPurchaseForPopup,
 } from "@/server/repositories/catalog";
 import { prisma } from "@/lib/prisma";
-import { siteConfig } from "@/config/site";
+import { publicPageUrl } from "@/config/site";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
   const image = product.ogImage ?? product.media.find((item) => item.type === "IMAGE")?.url;
+  const canonical = isLocale(locale) ? publicPageUrl(`/${locale}/product/${slug}`) : undefined;
   return {
     title: product.metaTitle ?? product.name,
     description: product.metaDescription ?? product.shortDescription ?? product.description.slice(0, 160),
-    openGraph: { type: "website", title: product.name, description: product.shortDescription ?? product.description.slice(0, 160), images: image ? [image] : [] },
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description: product.shortDescription ?? product.description.slice(0, 160),
+      images: image ? [image] : [],
+      url: canonical,
+    },
   };
 }
 
@@ -122,7 +130,7 @@ export default async function ProductPage({ params }: Props) {
     "@context": "https://schema.org", "@type": "Product", name: product.name,
     description: product.shortDescription ?? product.description, sku: product.sku,
     image: data.images.map((item) => item.url), brand: { "@type": "Brand", name: product.brand.name },
-    offers: { "@type": "Offer", url: `${siteConfig.url}/${localeParam}/product/${slug}`, priceCurrency: product.currency, price: data.price, availability: product.variants.some((v) => v.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
+    offers: { "@type": "Offer", url: publicPageUrl(`/${localeParam}/product/${slug}`), priceCurrency: product.currency, price: data.price, availability: product.variants.some((v) => v.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
     ...(product.reviews.length ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length, reviewCount: product.reviews.length } } : {}),
   };
 

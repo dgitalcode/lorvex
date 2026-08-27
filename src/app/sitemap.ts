@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-import { siteConfig } from "@/config/site";
+import { publicPageUrl, siteConfig } from "@/config/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await Promise.all([
@@ -15,15 +15,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/about",
     "/contact",
     "/faq",
-    "/search",
     "/legal/privacy",
     "/legal/terms",
   ];
   const entries: MetadataRoute.Sitemap = [];
   for (const locale of siteConfig.locales) {
-    entries.push(...staticPaths.map((path) => ({ url: `${siteConfig.url}/${locale}${path}`, lastModified: new Date(), changeFrequency: path === "" ? "daily" as const : "weekly" as const, priority: path === "" ? 1 : .7 })));
-    entries.push(...products.map((product) => ({ url: `${siteConfig.url}/${locale}/product/${product.slug}`, lastModified: product.updatedAt, changeFrequency: "weekly" as const, priority: .8 })));
-    entries.push(...collections.map((collection) => ({ url: `${siteConfig.url}/${locale}/collections/${collection.slug}`, lastModified: collection.updatedAt, changeFrequency: "weekly" as const, priority: .7 })));
+    entries.push(
+      ...staticPaths.map((path) => ({
+        url: publicPageUrl(`/${locale}${path}`),
+        lastModified: new Date(),
+        changeFrequency: path === "" ? ("daily" as const) : ("weekly" as const),
+        priority: path === "" ? 1 : 0.7,
+      })),
+    );
+    entries.push(
+      ...products.map((product) => ({
+        url: publicPageUrl(`/${locale}/product/${product.slug}`),
+        lastModified: product.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      })),
+    );
+    entries.push(
+      ...collections.map((collection) => ({
+        url: publicPageUrl(`/${locale}/collections/${collection.slug}`),
+        lastModified: collection.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      })),
+    );
   }
   return entries;
 }

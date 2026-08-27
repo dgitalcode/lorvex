@@ -3,14 +3,22 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/storefront/product-card";
 import { isLocale } from "@/i18n/get-dictionary";
+import { publicPageUrl } from "@/config/site";
 import { prisma } from "@/lib/prisma";
 import { searchProducts } from "@/server/repositories/catalog";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const collection = await prisma.collection.findUnique({ where: { slug }, select: { name: true, seoTitle: true, seoDescription: true, description: true } });
-  return collection ? { title: collection.seoTitle ?? collection.name, description: collection.seoDescription ?? collection.description } : {};
+  if (!collection) return {};
+  return {
+    title: collection.seoTitle ?? collection.name,
+    description: collection.seoDescription ?? collection.description,
+    alternates: isLocale(locale)
+      ? { canonical: publicPageUrl(`/${locale}/collections/${slug}`) }
+      : undefined,
+  };
 }
 
 export default async function CollectionPage({ params }: Props) {

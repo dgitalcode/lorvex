@@ -1,3 +1,42 @@
+export const PRODUCTION_SITE_ORIGIN = "https://www.lorvex.ma" as const;
+
+/**
+ * Public origin for canonicals, sitemap, robots, Open Graph, and JSON-LD.
+ * Never emits *.vercel.app or the apex host — production SEO host is www.
+ */
+export function resolvePublicSiteUrl(
+  raw = process.env.NEXT_PUBLIC_APP_URL,
+): string {
+  const localFallback = "http://localhost:3000";
+  const productionFallback =
+    process.env.NODE_ENV === "production"
+      ? PRODUCTION_SITE_ORIGIN
+      : localFallback;
+
+  const input = raw?.trim();
+  if (!input) return productionFallback;
+
+  try {
+    const origin = new URL(input).origin;
+    const host = new URL(origin).hostname.toLowerCase();
+    if (
+      host.endsWith(".vercel.app") ||
+      host === "lorvex.ma" ||
+      host === "www.lorvex.ma"
+    ) {
+      return PRODUCTION_SITE_ORIGIN;
+    }
+    return origin;
+  } catch {
+    return productionFallback;
+  }
+}
+
+export function publicPageUrl(pathname: string): string {
+  const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  return `${resolvePublicSiteUrl()}${path === "/" ? "" : path.replace(/\/$/, "")}`;
+}
+
 export const siteConfig = {
   name: "LORVEX",
   tagline: {
@@ -10,7 +49,7 @@ export const siteConfig = {
     en: "LORVEX is Morocco's definitive house for prestige watches. Exclusive selection, guaranteed authenticity, an unforgettable buying experience.",
     ar: "لورفكس هي الدار المغربية المرجعية للساعات الفاخرة. تشكيلة حصرية، أصالة مضمونة، وتجربة شراء لا تُنسى.",
   },
-  url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  url: resolvePublicSiteUrl(),
   localeDefault: "fr" as const,
   locales: ["fr", "en", "ar"] as const,
   currencyDefault: "MAD",

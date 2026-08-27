@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { isLocale } from "@/i18n/get-dictionary";
 import { searchProducts, getBrands } from "@/server/repositories/catalog";
 
-export const metadata = { title: "Search" };
+export const metadata = { title: "Search", robots: { index: false, follow: true } };
 
 export default async function SearchPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string }> }) {
   const { locale } = await params;

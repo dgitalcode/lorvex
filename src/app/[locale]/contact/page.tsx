@@ -1,13 +1,26 @@
 import { Mail, MapPin, Phone } from "lucide-react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
+import { publicPageUrl } from "@/config/site";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export const metadata = { title: "Contact our concierge" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  return {
+    title: "Contact our concierge",
+    alternates: { canonical: publicPageUrl(`/${locale}/contact`) },
+  };
+}
 
 export default async function ContactPage({
   params,

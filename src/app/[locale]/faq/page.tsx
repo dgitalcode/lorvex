@@ -1,9 +1,22 @@
 import { Plus } from "lucide-react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
+import { publicPageUrl } from "@/config/site";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Frequently asked questions" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  return {
+    title: "Frequently asked questions",
+    alternates: { canonical: publicPageUrl(`/${locale}/faq`) },
+  };
+}
 
 const defaults = [
   { id: "authenticity", category: "Watches", question: "Are all LORVEX watches authentic?", answer: "Yes. Every watch is sourced through trusted channels, inspected before dispatch and supplied with its applicable warranty and provenance." },

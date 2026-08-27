@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
-import { siteConfig } from "@/config/site";
+import { publicPageUrl, siteConfig } from "@/config/site";
 import {
   HeroSection,
   ProductRail,
@@ -38,7 +38,7 @@ export async function generateMetadata({
     title: settings.tagline || siteConfig.tagline[localeParam],
     description: siteConfig.description[localeParam],
     alternates: {
-      canonical: `/${localeParam}`,
+      canonical: publicPageUrl(`/${localeParam}`),
       languages: {
         fr: "/fr",
         en: "/en",

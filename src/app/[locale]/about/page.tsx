@@ -1,7 +1,21 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
+import { publicPageUrl } from "@/config/site";
 
-export const metadata = { title: "Our maison", description: "Discover LORVEX, Morocco's destination for exceptional watchmaking." };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  return {
+    title: "Our maison",
+    description: "Discover LORVEX, Morocco's destination for exceptional watchmaking.",
+    alternates: { canonical: publicPageUrl(`/${locale}/about`) },
+  };
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
