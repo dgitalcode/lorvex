@@ -5,6 +5,7 @@ import type { SiteSettings } from "@prisma/client";
 export type StorefrontSettings = {
   siteName: string;
   tagline: string | null;
+  logoUrl: string | null;
   supportEmail: string;
   supportPhone: string;
   whatsappNumber: string;
@@ -25,6 +26,7 @@ export function resolveStorefrontSettings(
   return {
     siteName: row?.siteName?.trim() || siteConfig.name,
     tagline: row?.tagline?.trim() || null,
+    logoUrl: row?.logoUrl?.trim() || null,
     supportEmail: row?.supportEmail?.trim() || siteConfig.supportEmail,
     supportPhone: row?.supportPhone?.trim() || siteConfig.supportPhone,
     whatsappNumber: row?.whatsappNumber?.trim() || siteConfig.whatsapp,

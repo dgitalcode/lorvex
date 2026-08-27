@@ -16,6 +16,8 @@ import {
 } from "@/components/storefront/home-sections";
 import { InfiniteMarquee } from "@/components/luxury/marquee";
 import { PersonalizedHomeBlocks } from "@/components/storefront/personalized-home";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildSiteGraphJsonLd } from "@/lib/json-ld";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import {
   getFeaturedProducts,
@@ -171,25 +173,7 @@ export default async function HomePage({
       />
       <InstagramSection title={dictionary.sections.instagram} />
       <NewsletterSection locale={locale} title={dictionary.sections.newsletter} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: settings.siteName,
-            url: siteConfig.url,
-            description: settings.tagline || siteConfig.description[locale],
-            email: settings.supportEmail,
-            telephone: settings.supportPhone,
-            address: {
-              "@type": "PostalAddress",
-              addressCountry: "MA",
-              addressLocality: "Casablanca",
-            },
-          }),
-        }}
-      />
+      <JsonLd data={buildSiteGraphJsonLd(settings)} />
     </>
   );
 }

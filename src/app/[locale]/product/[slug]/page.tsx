@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductExperience } from "@/components/product/product-experience";
 import type { PdpContext, PdpProduct } from "@/components/product/types";
 import type { ProductCardData } from "@/components/storefront/product-card";
-import { isLocale } from "@/i18n/get-dictionary";
+import { isLocale, getDictionary } from "@/i18n/get-dictionary";
 import {
   getAiRecommendations,
   getCollectionsForProducts,
@@ -11,8 +11,12 @@ import {
   getRecentPurchaseForPopup,
 } from "@/server/repositories/catalog";
 import { prisma } from "@/lib/prisma";
-import { publicPageUrl } from "@/config/site";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import {
+  buildBreadcrumbListJsonLd,
+  buildProductJsonLd,
+} from "@/lib/json-ld";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -128,16 +132,41 @@ export default async function ProductPage({ params }: Props) {
   };
 
   const image = data.images[0]?.url;
-  const jsonLd = {
-    "@context": "https://schema.org", "@type": "Product", name: product.name,
-    description: product.shortDescription ?? product.description, sku: product.sku,
-    image: data.images.map((item) => item.url), brand: { "@type": "Brand", name: product.brand.name },
-    offers: { "@type": "Offer", url: publicPageUrl(`/${localeParam}/product/${slug}`), priceCurrency: product.currency, price: data.price, availability: product.variants.some((v) => v.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
-    ...(product.reviews.length ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length, reviewCount: product.reviews.length } } : {}),
-  };
+  const productJsonLd = buildProductJsonLd({
+    locale: localeParam,
+    slug,
+    name: product.name,
+    description: product.shortDescription ?? product.description,
+    sku: product.sku,
+    brandName: product.brand.name,
+    currency: product.currency,
+    images: data.images.map((item) => item.url),
+    barcode: product.barcode,
+    variants: data.variants.map((variant) => ({
+      price: variant.price,
+      stock: variant.stock,
+    })),
+    basePrice: data.price,
+    reviews: product.reviews.map((review) => ({
+      rating: review.rating,
+      body: review.body,
+      title: review.title,
+      author: review.user.name,
+    })),
+  });
+  const dictionary = getDictionary(localeParam);
+  const crumbs = [
+    { name: "LORVEX", path: `/${localeParam}` },
+    { name: dictionary.nav.shop, path: `/${localeParam}/shop` },
+    ...(product.collection
+      ? [{ name: product.collection.name, path: `/${localeParam}/collections/${product.collection.slug}` }]
+      : []),
+    { name: product.name, path: `/${localeParam}/product/${slug}` },
+  ];
 
   return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+    <JsonLd data={productJsonLd} />
+    <JsonLd data={buildBreadcrumbListJsonLd(crumbs)} />
     {image && <link rel="preload" as="image" href={image} />}
     <ProductExperience context={context} faqItems={faqRows} collections={collections} />
   </>;

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildFaqPageJsonLd } from "@/lib/json-ld";
 import { prisma } from "@/lib/prisma";
 
 export async function generateMetadata({
@@ -32,5 +34,6 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
   if (!isLocale(locale)) notFound();
   const stored = await prisma.faqItem.findMany({ where: { isActive: true }, orderBy: [{ category: "asc" }, { sortOrder: "asc" }] });
   const items = stored.length ? stored : defaults;
-  return <div className="luxury-container pb-24 page-pad"><div className="mx-auto max-w-4xl"><p className="text-[11px] uppercase tracking-[.24em] text-accent">Client services</p><h1 className="mt-3 font-display text-6xl">Frequently asked questions</h1><div className="mt-12 divide-y border-y">{items.map((item) => <details key={item.id} className="group py-6"><summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-display text-2xl"><span>{item.question}</span><Plus className="h-5 w-5 shrink-0 transition group-open:rotate-45" /></summary><p className="max-w-3xl pt-4 leading-7 text-muted-foreground">{item.answer}</p></details>)}</div></div></div>;
+  const faqJsonLd = buildFaqPageJsonLd(items);
+  return <div className="luxury-container pb-24 page-pad"><JsonLd data={faqJsonLd} /><div className="mx-auto max-w-4xl"><p className="text-[11px] uppercase tracking-[.24em] text-accent">Client services</p><h1 className="mt-3 font-display text-6xl">Frequently asked questions</h1><div className="mt-12 divide-y border-y">{items.map((item) => <details key={item.id} className="group py-6"><summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-display text-2xl"><span>{item.question}</span><Plus className="h-5 w-5 shrink-0 transition group-open:rotate-45" /></summary><p className="max-w-3xl pt-4 leading-7 text-muted-foreground">{item.answer}</p></details>)}</div></div></div>;
 }

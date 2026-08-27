@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/storefront/product-card";
-import { isLocale } from "@/i18n/get-dictionary";
+import { isLocale, getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import {
+  buildBreadcrumbListJsonLd,
+  buildCollectionPageJsonLd,
+} from "@/lib/json-ld";
 import { prisma } from "@/lib/prisma";
 import { searchProducts } from "@/server/repositories/catalog";
 
@@ -27,7 +32,26 @@ export default async function CollectionPage({ params }: Props) {
   const collection = await prisma.collection.findUnique({ where: { slug } });
   if (!collection) notFound();
   const result = await searchProducts({ collection: slug, pageSize: 48 });
+  const dictionary = getDictionary(locale);
+  const crumbs = [
+    { name: "LORVEX", path: `/${locale}` },
+    { name: dictionary.nav.shop, path: `/${locale}/shop` },
+    { name: collection.name, path: `/${locale}/collections/${slug}` },
+  ];
   return <div className="pb-24 page-pad">
+    <JsonLd
+      data={buildCollectionPageJsonLd({
+        locale,
+        slug,
+        name: collection.name,
+        description: collection.description,
+        products: result.products.map((product) => ({
+          name: product.name,
+          slug: product.slug,
+        })),
+      })}
+    />
+    <JsonLd data={buildBreadcrumbListJsonLd(crumbs)} />
     <header className="relative flex min-h-[52vh] items-end overflow-hidden bg-[#171512]">{collection.coverUrl && <Image src={collection.coverUrl} alt={collection.name} fill priority className="object-cover opacity-65" />}<div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" /><div className="luxury-container relative pb-14 text-white"><p className="text-[11px] uppercase tracking-[.24em] text-[#d6bd8b]">{collection.isLimited ? "Limited collection" : "LORVEX collection"}</p><h1 className="mt-3 font-display text-6xl md:text-7xl">{collection.name}</h1>{collection.description && <p className="mt-4 max-w-2xl text-white/75">{collection.description}</p>}</div></header>
     <div className="luxury-container mt-14"><p className="mb-8 text-sm text-muted-foreground">{result.total} timepieces</p><div className="grid grid-cols-2 gap-5 lg:grid-cols-4">{result.products.map((product) => <ProductCard key={product.id} product={product} locale={locale} />)}</div></div>
   </div>;
