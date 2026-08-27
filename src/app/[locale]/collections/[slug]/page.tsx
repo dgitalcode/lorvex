@@ -6,6 +6,7 @@ import { isLocale, getDictionary } from "@/i18n/get-dictionary";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
+  absoluteAssetUrl,
   buildBreadcrumbListJsonLd,
   buildCollectionPageJsonLd,
 } from "@/lib/json-ld";
@@ -15,14 +16,30 @@ import { searchProducts } from "@/server/repositories/catalog";
 type Props = { params: Promise<{ locale: string; slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  const collection = await prisma.collection.findUnique({ where: { slug }, select: { name: true, seoTitle: true, seoDescription: true, description: true } });
+  const collection = await prisma.collection.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      seoTitle: true,
+      seoDescription: true,
+      description: true,
+      coverUrl: true,
+    },
+  });
   if (!collection || !isLocale(locale)) return {};
   const alternates = localeAlternates(locale, `/collections/${slug}`);
+  const image = collection.coverUrl
+    ? absoluteAssetUrl(collection.coverUrl)
+    : absoluteAssetUrl("/images/lorvex/hero.jpg");
   return {
     title: collection.seoTitle ?? collection.name,
     description: collection.seoDescription ?? collection.description,
     alternates,
-    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
+    openGraph: {
+      url: alternates.canonical,
+      locale: ogLocale(locale),
+      images: [image],
+    },
   };
 }
 

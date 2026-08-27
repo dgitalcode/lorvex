@@ -1,16 +1,6 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/config/site";
+import { buildRobotsDocument } from "@/lib/seo-indexability";
 
 export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: ["/admin/", "/*/account/", "/*/checkout/", "/*/order/"],
-      },
-    ],
-    sitemap: `${siteConfig.url}/sitemap.xml`,
-    host: siteConfig.url,
-  };
+  return buildRobotsDocument();
 }

@@ -2,27 +2,21 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { publicPageUrl, siteConfig } from "@/config/site";
 import { hreflangLanguages } from "@/lib/i18n-seo";
+import { INDEXABLE_STATIC_PATHS } from "@/lib/seo-indexability";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await Promise.all([
     prisma.product.findMany({ where: { status: "ACTIVE" }, select: { slug: true, updatedAt: true } }),
-    prisma.collection.findMany({ select: { slug: true, updatedAt: true } }),
+    prisma.collection.findMany({
+      where: { products: { some: { status: "ACTIVE" } } },
+      select: { slug: true, updatedAt: true },
+    }),
   ]).catch(() => [[], []] as const);
   const [products, collections] = catalog;
-  const staticPaths = [
-    "",
-    "/shop",
-    "/collections",
-    "/about",
-    "/contact",
-    "/faq",
-    "/legal/privacy",
-    "/legal/terms",
-  ];
   const entries: MetadataRoute.Sitemap = [];
   for (const locale of siteConfig.locales) {
     entries.push(
-      ...staticPaths.map((path) => ({
+      ...INDEXABLE_STATIC_PATHS.map((path) => ({
         url: publicPageUrl(`/${locale}${path}`),
         lastModified: new Date(),
         changeFrequency: path === "" ? ("daily" as const) : ("weekly" as const),

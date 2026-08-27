@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
+  absoluteAssetUrl,
   buildBreadcrumbListJsonLd,
   buildProductJsonLd,
 } from "@/lib/json-ld";
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       title: product.name,
       description: product.shortDescription ?? product.description.slice(0, 160),
-      images: image ? [image] : [],
+      images: image ? [absoluteAssetUrl(image)] : [absoluteAssetUrl("/images/lorvex/hero.jpg")],
       url: alternates.canonical,
       locale: ogLocale(locale),
     },

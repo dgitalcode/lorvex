@@ -1,25 +1,37 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
+import { siteConfig } from "@/config/site";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { shopQueryIsIndexable } from "@/lib/seo-indexability";
+import { absoluteAssetUrl } from "@/lib/json-ld";
 import { searchProducts, getFilterFacets } from "@/server/repositories/catalog";
 import { ShopClient } from "@/components/storefront/shop-client";
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { locale: localeParam } = await params;
   if (!isLocale(localeParam)) return {};
   const dictionary = getDictionary(localeParam);
+  const sp = await searchParams;
   const alternates = localeAlternates(localeParam, "/shop");
+  const indexable = shopQueryIsIndexable(sp);
   return {
     title: dictionary.nav.shop,
+    description: siteConfig.description[localeParam],
     alternates,
+    robots: indexable
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
     openGraph: {
       url: alternates.canonical,
       locale: ogLocale(localeParam),
+      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
     },
   };
 }

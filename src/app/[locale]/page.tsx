@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
 import { siteConfig } from "@/config/site";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { absoluteAssetUrl } from "@/lib/json-ld";
 import {
   HeroSection,
   ProductRail,
@@ -45,6 +46,7 @@ export async function generateMetadata({
     openGraph: {
       url: alternates.canonical,
       locale: ogLocale(localeParam),
+      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
     },
   };
 }

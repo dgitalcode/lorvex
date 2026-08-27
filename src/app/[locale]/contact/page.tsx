@@ -2,7 +2,9 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
+import { siteConfig } from "@/config/site";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { absoluteAssetUrl } from "@/lib/json-ld";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +21,13 @@ export async function generateMetadata({
   const alternates = localeAlternates(locale, "/contact");
   return {
     title: "Contact our concierge",
+    description: siteConfig.description[locale],
     alternates,
-    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
+    openGraph: {
+      url: alternates.canonical,
+      locale: ogLocale(locale),
+      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
+    },
   };
 }
 

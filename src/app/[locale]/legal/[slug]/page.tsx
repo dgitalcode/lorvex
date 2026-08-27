@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
 import { siteConfig, type Locale } from "@/config/site";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { absoluteAssetUrl } from "@/lib/json-ld";
 import {
   getLegalDocument,
   isLegalSlug,
@@ -50,6 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: settings.siteName,
       locale: ogLocale(localeParam),
       type: "website",
+      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
     },
     robots: {
       index: true,

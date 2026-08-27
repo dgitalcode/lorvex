@@ -3,7 +3,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
+import { siteConfig } from "@/config/site";
 import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { absoluteAssetUrl } from "@/lib/json-ld";
 import { prisma } from "@/lib/prisma";
 
 export async function generateMetadata({
@@ -16,8 +18,13 @@ export async function generateMetadata({
   const alternates = localeAlternates(locale, "/collections");
   return {
     title: "Collections",
+    description: siteConfig.description[locale],
     alternates,
-    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
+    openGraph: {
+      url: alternates.canonical,
+      locale: ogLocale(locale),
+      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
+    },
   };
 }
 
