@@ -24,7 +24,7 @@ type Props = { params: Promise<{ locale: string; slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product || !isLocale(locale)) return {};
+  if (!product || !isLocale(locale)) notFound();
   const image = product.ogImage ?? product.media.find((item) => item.type === "IMAGE")?.url;
   const alternates = localeAlternates(locale, `/product/${slug}`);
   return {

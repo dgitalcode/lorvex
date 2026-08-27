@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       coverUrl: true,
     },
   });
-  if (!collection || !isLocale(locale)) return {};
+  if (!collection || !isLocale(locale)) notFound();
   const alternates = localeAlternates(locale, `/collections/${slug}`);
   const image = collection.coverUrl
     ? absoluteAssetUrl(collection.coverUrl)

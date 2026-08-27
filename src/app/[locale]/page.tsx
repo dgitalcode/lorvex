@@ -40,7 +40,10 @@ export async function generateMetadata({
   const settings = await getStorefrontSettings();
   const alternates = localeAlternates(localeParam, "");
   return {
-    title: settings.tagline || siteConfig.tagline[localeParam],
+    title:
+      localeParam === "fr" && settings.tagline
+        ? settings.tagline
+        : siteConfig.tagline[localeParam],
     description: siteConfig.description[localeParam],
     alternates,
     openGraph: {

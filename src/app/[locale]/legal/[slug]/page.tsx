@@ -29,7 +29,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: localeParam, slug } = await params;
-  if (!isLocale(localeParam) || !isLegalSlug(slug)) return {};
+  if (!isLocale(localeParam) || !isLegalSlug(slug)) notFound();
 
   const settings = await getStorefrontSettings();
   const document = getLegalDocument(localeParam, slug, {
