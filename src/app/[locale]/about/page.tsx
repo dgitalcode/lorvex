@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
-import { siteConfig } from "@/config/site";
-import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
-import { absoluteAssetUrl } from "@/lib/json-ld";
+import { localePageMetadata } from "@/lib/page-metadata";
+import { storefrontCopy } from "@/content/storefront-copy";
 
 export async function generateMetadata({
   params,
@@ -12,21 +12,53 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const alternates = localeAlternates(locale, "/about");
-  return {
-    title: "Our maison",
-    description: siteConfig.description[locale],
-    alternates,
-    openGraph: {
-      url: alternates.canonical,
-      locale: ogLocale(locale),
-      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
-    },
-  };
+  const copy = storefrontCopy(locale);
+  return localePageMetadata({
+    locale,
+    path: "/about",
+    title: copy.aboutTitle,
+    description: copy.aboutDescription,
+  });
 }
 
-export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function AboutPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <div className="page-pad"><header className="luxury-container max-w-5xl text-center"><p className="text-[11px] uppercase tracking-[.25em] text-accent">The maison</p><h1 className="mt-4 text-balance font-display text-6xl md:text-8xl">Time, chosen with purpose.</h1><p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-muted-foreground">LORVEX brings the world&apos;s most compelling watchmaking to Morocco through expert curation, uncompromising authenticity and discreet personal service.</p></header><section className="luxury-container section-pad grid gap-12 md:grid-cols-3">{[{ n: "01", t: "Authenticity", d: "Every timepiece is sourced through trusted channels, inspected by specialists and delivered with full provenance." }, { n: "02", t: "Curation", d: "We select watches for their design integrity, mechanical significance and enduring place in a considered collection." }, { n: "03", t: "Service", d: "From first consultation to long-term care, our concierge relationship continues well beyond delivery." }].map((item) => <article key={item.n} className="border-t pt-6"><span className="text-xs text-accent">{item.n}</span><h2 className="mt-5 font-display text-3xl">{item.t}</h2><p className="mt-3 leading-7 text-muted-foreground">{item.d}</p></article>)}</section></div>;
+  const copy = storefrontCopy(locale);
+  return (
+    <div className="page-pad">
+      <header className="luxury-container max-w-5xl text-center">
+        <p className="text-[11px] uppercase tracking-[.25em] text-accent">
+          {copy.aboutEyebrow}
+        </p>
+        <h1 className="mt-4 text-balance font-display text-6xl md:text-8xl">
+          {copy.aboutH1}
+        </h1>
+        <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-muted-foreground">
+          {copy.aboutLead}
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm">
+          <Link href={`/${locale}/shop`} className="underline underline-offset-4">
+            {copy.aboutShop}
+          </Link>
+          <Link href={`/${locale}/contact`} className="underline underline-offset-4">
+            {copy.aboutContact}
+          </Link>
+        </div>
+      </header>
+      <section className="luxury-container section-pad grid gap-12 md:grid-cols-3">
+        {copy.aboutPillars.map((item) => (
+          <article key={item.n} className="border-t pt-6">
+            <span className="text-xs text-accent">{item.n}</span>
+            <h2 className="mt-5 font-display text-3xl">{item.title}</h2>
+            <p className="mt-3 leading-7 text-muted-foreground">{item.body}</p>
+          </article>
+        ))}
+      </section>
+    </div>
+  );
 }

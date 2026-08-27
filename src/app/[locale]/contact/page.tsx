@@ -2,9 +2,8 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
-import { siteConfig } from "@/config/site";
-import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
-import { absoluteAssetUrl } from "@/lib/json-ld";
+import { localePageMetadata } from "@/lib/page-metadata";
+import { storefrontCopy } from "@/content/storefront-copy";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,17 +17,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const alternates = localeAlternates(locale, "/contact");
-  return {
-    title: "Contact our concierge",
-    description: siteConfig.description[locale],
-    alternates,
-    openGraph: {
-      url: alternates.canonical,
-      locale: ogLocale(locale),
-      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
-    },
-  };
+  const copy = storefrontCopy(locale);
+  return localePageMetadata({
+    locale,
+    path: "/contact",
+    title: copy.contactTitle,
+    description: copy.contactDescription,
+  });
 }
 
 export default async function ContactPage({
@@ -39,18 +34,18 @@ export default async function ContactPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const settings = await getStorefrontSettings();
+  const copy = storefrontCopy(locale);
 
   return (
     <div className="luxury-container pb-24 page-pad">
       <div className="grid gap-14 lg:grid-cols-2">
         <div>
           <p className="text-[11px] uppercase tracking-[.24em] text-accent">
-            Private concierge
+            {copy.contactEyebrow}
           </p>
-          <h1 className="mt-3 font-display text-6xl">How may we assist?</h1>
+          <h1 className="mt-3 font-display text-6xl">{copy.contactH1}</h1>
           <p className="mt-5 max-w-lg leading-7 text-muted-foreground">
-            Whether you are seeking a particular reference or guidance for your
-            first exceptional watch, our team responds with discretion.
+            {copy.contactLead}
           </p>
           <div className="mt-10 space-y-5 text-sm">
             <a
@@ -69,7 +64,7 @@ export default async function ContactPage({
             </a>
             <p className="flex items-center gap-3">
               <MapPin className="h-4 w-4" />
-              Casablanca, Morocco
+              {copy.contactCity}
             </p>
           </div>
         </div>
@@ -79,15 +74,15 @@ export default async function ContactPage({
           encType="text/plain"
           className="border bg-card p-8"
         >
-          <h2 className="font-display text-3xl">Send an enquiry</h2>
+          <h2 className="font-display text-3xl">{copy.contactFormTitle}</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            <Field label="Name" name="name" />
-            <Field label="Email" name="email" type="email" />
+            <Field label={copy.contactName} name="name" />
+            <Field label={copy.contactEmail} name="email" type="email" />
             <div className="sm:col-span-2">
-              <Field label="Subject" name="subject" />
+              <Field label={copy.contactSubject} name="subject" />
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="message">Message</Label>
+              <Label htmlFor="message">{copy.contactMessage}</Label>
               <Textarea
                 id="message"
                 name="message"
@@ -97,7 +92,7 @@ export default async function ContactPage({
             </div>
           </div>
           <Button type="submit" size="lg" className="mt-6">
-            Contact concierge
+            {copy.contactSubmit}
           </Button>
         </form>
       </div>

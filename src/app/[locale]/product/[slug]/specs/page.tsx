@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { PrintButton } from "@/components/product/print-button";
 import { isLocale } from "@/i18n/get-dictionary";
 import { getProductBySlug } from "@/server/repositories/catalog";
+import { composeDocumentTitle } from "@/lib/document-title";
 import { formatPrice } from "@/lib/format";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -15,8 +16,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
   return {
-    title: `${product.name} — Fiche technique`,
-    robots: { index: false },
+    title: { absolute: composeDocumentTitle(`${product.name} — Fiche technique`) },
+    robots: { index: false, follow: false },
   };
 }
 

@@ -11,6 +11,7 @@ import { Magnetic } from "@/components/luxury/magnetic";
 import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/config/site";
+import { storefrontCopy } from "@/content/storefront-copy";
 
 const DEFAULT_IMAGE = "/images/lorvex/hero.jpg";
 
@@ -72,7 +73,14 @@ export function CinematicHero({
     mediaType === "video" ? content?.videoUrl?.trim() || "" : "";
   const videoOk = Boolean(videoUrl) && !reduce && failedVideoUrl !== videoUrl;
   const showVideo = videoOk;
-  const title = content?.title ?? dictionary.hero.title;
+  const title =
+    locale === "fr" && content?.title?.trim()
+      ? content.title.trim()
+      : dictionary.hero.title;
+  const subtitle =
+    locale === "fr" && content?.subtitle?.trim()
+      ? content.subtitle.trim()
+      : dictionary.hero.subtitle;
   const mime = videoUrl ? videoMimeFromUrl(videoUrl) : undefined;
 
   useEffect(() => {
@@ -190,7 +198,7 @@ export function CinematicHero({
           className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight text-balance md:text-7xl lg:text-8xl"
         />
         <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80 md:text-lg">
-          {content?.subtitle ?? dictionary.hero.subtitle}
+          {subtitle}
         </p>
         <div className="mt-10 flex flex-wrap gap-4">
           <Magnetic>
@@ -212,7 +220,7 @@ export function CinematicHero({
 
       <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
         <span className="text-[10px] uppercase tracking-[0.28em] text-foreground/55">
-          Scroll
+          {storefrontCopy(locale).scroll}
         </span>
         <span className="h-10 w-px origin-top animate-pulse bg-foreground/40" />
       </div>

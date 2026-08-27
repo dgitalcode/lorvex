@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { Providers } from "@/components/shared/providers";
 import { PwaRegister } from "@/components/shared/pwa-register";
 import { siteConfig } from "@/config/site";
+import { composeDocumentTitle } from "@/lib/document-title";
 import { getDirection, isLocale } from "@/i18n/get-dictionary";
 import "./globals.css";
 
@@ -29,8 +30,8 @@ const sans = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline.fr}`,
-    template: `%s · ${siteConfig.name}`,
+    default: composeDocumentTitle(siteConfig.tagline.fr),
+    template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description.fr,
   openGraph: {

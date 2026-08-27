@@ -16,9 +16,9 @@ export const dictionaries = {
     },
     hero: {
       eyebrow: "Maison d'horlogerie · Maroc",
-      title: "Le temps, élevé au rang d'art.",
+      title: "L'art de la montre, au Maroc.",
       subtitle:
-        "Une sélection exclusive de montres de prestige, authentifiées et livrées avec le soin d'une maison.",
+        "Une sélection exclusive de montres de prestige, authentifiées et livrées avec le soin d'une maison — en dirham, pour le Maroc.",
       ctaPrimary: "Explorer la collection",
       ctaSecondary: "Prendre rendez-vous",
     },
@@ -124,9 +124,9 @@ export const dictionaries = {
     },
     hero: {
       eyebrow: "Watch house · Morocco",
-      title: "Time, elevated to art.",
+      title: "Watchmaking, chosen for Morocco.",
       subtitle:
-        "An exclusive selection of prestige watches, authenticated and delivered with house-level care.",
+        "An exclusive selection of prestige watches, authenticated and delivered with house-level care — priced in dirham, for Morocco.",
       ctaPrimary: "Explore the collection",
       ctaSecondary: "Book an appointment",
     },
@@ -232,9 +232,9 @@ export const dictionaries = {
     },
     hero: {
       eyebrow: "دار ساعات · المغرب",
-      title: "الزمن، مرتقى إلى فن.",
+      title: "فن الساعات في المغرب.",
       subtitle:
-        "تشكيلة حصرية من الساعات الراقية، موثّقة وتُسلَّم بعناية دار حقيقية.",
+        "تشكيلة حصرية من الساعات الراقية، موثّقة وتُسلَّم بعناية دار حقيقية — بالدرهم، للمغرب.",
       ctaPrimary: "استكشف المجموعة",
       ctaSecondary: "احجز موعداً",
     },

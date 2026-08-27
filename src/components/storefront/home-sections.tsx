@@ -11,6 +11,7 @@ import { TextReveal } from "@/components/luxury/text-reveal";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/config/site";
 import { siteConfig } from "@/config/site";
+import { storefrontCopy } from "@/content/storefront-copy";
 
 export function HeroSection({
   locale,
@@ -155,25 +156,13 @@ export function CollectionsSection({
   );
 }
 
-export function WhyChooseUs({ title }: { title: string }) {
-  const items = [
-    {
-      title: "Authenticité",
-      body: "Chaque pièce est authentifiée par nos experts horlogers.",
-    },
-    {
-      title: "Conciergerie",
-      body: "Un accompagnement privé, de la sélection à la livraison.",
-    },
-    {
-      title: "Garantie maison",
-      body: "Couverture étendue et service après-vente dédié au Maroc.",
-    },
-    {
-      title: "Livraison sécurisée",
-      body: "Emballage muséal et transport assuré partout au Royaume.",
-    },
-  ];
+export function WhyChooseUs({
+  title,
+  items,
+}: {
+  title: string;
+  items: { title: string; body: string }[];
+}) {
 
   return (
     <section className="section-pad">
@@ -203,15 +192,11 @@ export function WhyChooseUs({ title }: { title: string }) {
 
 export function StatsSection({
   title,
+  stats,
 }: {
   title: string;
+  stats: { value: string; label: string }[];
 }) {
-  const stats = [
-    { value: "120+", label: "Références exclusives" },
-    { value: "15", label: "Maisons partenaires" },
-    { value: "98%", label: "Clients satisfaits" },
-    { value: "24/7", label: "Conciergerie" },
-  ];
   return (
     <section className="border-y border-border bg-primary text-primary-foreground">
       <div className="luxury-container py-16 md:py-20">
@@ -238,13 +223,14 @@ export function BrandStory({
   locale: Locale;
   title: string;
 }) {
+  const copy = storefrontCopy(locale);
   return (
     <section className="section-pad">
       <div className="luxury-container grid items-center gap-12 lg:grid-cols-2">
         <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
           <ImageReveal
             src="/images/lorvex/atelier.jpg"
-            alt="LORVEX atelier — craftsmanship and fine watchmaking"
+            alt={copy.brandStoryAlt}
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="absolute inset-0 h-full w-full"
           />
@@ -257,11 +243,11 @@ export function BrandStory({
             {title}
           </TextReveal>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground">
-            {siteConfig.description[locale]}
+            {copy.homeDescription}
           </p>
           <Magnetic className="mt-8">
             <Button asChild variant="outline" size="lg">
-              <Link href={`/${locale}/about`}>Découvrir la maison</Link>
+              <Link href={`/${locale}/about`}>{copy.brandStoryCta}</Link>
             </Button>
           </Magnetic>
         </FadeIn>

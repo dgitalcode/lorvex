@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
 import { siteConfig, type Locale } from "@/config/site";
-import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
-import { absoluteAssetUrl } from "@/lib/json-ld";
+import { localePageMetadata } from "@/lib/page-metadata";
 import {
   getLegalDocument,
   isLegalSlug,
@@ -38,26 +37,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     supportPhone: settings.supportPhone,
   });
 
-  const alternates = localeAlternates(localeParam, `/legal/${slug}`);
-
-  return {
+  return localePageMetadata({
+    locale: localeParam,
+    path: `/legal/${slug}`,
     title: document.title,
     description: document.description,
-    alternates,
-    openGraph: {
-      title: `${document.title} · ${settings.siteName}`,
-      description: document.description,
-      url: alternates.canonical,
-      siteName: settings.siteName,
-      locale: ogLocale(localeParam),
-      type: "website",
-      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
-  };
+    robots: { index: true, follow: true },
+  });
 }
 
 export default async function LegalPage({ params }: Props) {

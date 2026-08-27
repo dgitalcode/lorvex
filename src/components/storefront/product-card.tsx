@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useWishlistStore, useCompareStore } from "@/stores/commerce-stores";
 import type { Locale } from "@/config/site";
+import { storefrontCopy } from "@/content/storefront-copy";
 
 export type ProductCardData = {
   id: string;
@@ -59,7 +60,7 @@ export function ProductCard({
         >
           <Image
             src={product.imageUrl}
-            alt={product.name}
+            alt={storefrontCopy(locale).watchAlt(product.name)}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"

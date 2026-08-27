@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
-import { siteConfig } from "@/config/site";
-import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { localePageMetadata } from "@/lib/page-metadata";
 import { shopQueryIsIndexable } from "@/lib/seo-indexability";
-import { absoluteAssetUrl } from "@/lib/json-ld";
+import { storefrontCopy } from "@/content/storefront-copy";
 import { searchProducts, getFilterFacets } from "@/server/repositories/catalog";
 import { ShopClient } from "@/components/storefront/shop-client";
 
@@ -17,23 +16,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: localeParam } = await params;
   if (!isLocale(localeParam)) return {};
-  const dictionary = getDictionary(localeParam);
+  const copy = storefrontCopy(localeParam);
   const sp = await searchParams;
-  const alternates = localeAlternates(localeParam, "/shop");
   const indexable = shopQueryIsIndexable(sp);
-  return {
-    title: dictionary.nav.shop,
-    description: siteConfig.description[localeParam],
-    alternates,
+  return localePageMetadata({
+    locale: localeParam,
+    path: "/shop",
+    title: copy.shopTitle,
+    description: copy.shopDescription,
     robots: indexable
       ? { index: true, follow: true }
       : { index: false, follow: true },
-    openGraph: {
-      url: alternates.canonical,
-      locale: ogLocale(localeParam),
-      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
-    },
-  };
+  });
 }
 
 export default async function ShopPage({
@@ -47,6 +41,7 @@ export default async function ShopPage({
   if (!isLocale(localeParam)) notFound();
   const locale = localeParam;
   const dictionary = getDictionary(locale);
+  const copy = storefrontCopy(locale);
   const sp = await searchParams;
 
   const get = (key: string) => {
@@ -99,9 +94,12 @@ export default async function ShopPage({
             LORVEX
           </p>
           <h1 className="mt-3 font-display text-5xl md:text-6xl">
-            {dictionary.nav.shop}
+            {copy.shopTitle}
           </h1>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            {copy.shopLead}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
             {result.total} {dictionary.shop.results}
           </p>
         </div>

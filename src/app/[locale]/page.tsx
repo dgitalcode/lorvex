@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
-import { siteConfig } from "@/config/site";
-import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
-import { absoluteAssetUrl } from "@/lib/json-ld";
+import { localePageMetadata } from "@/lib/page-metadata";
+import { storefrontCopy } from "@/content/storefront-copy";
 import {
   HeroSection,
   ProductRail,
@@ -37,21 +36,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: localeParam } = await params;
   if (!isLocale(localeParam)) return {};
-  const settings = await getStorefrontSettings();
-  const alternates = localeAlternates(localeParam, "");
-  return {
-    title:
-      localeParam === "fr" && settings.tagline
-        ? settings.tagline
-        : siteConfig.tagline[localeParam],
-    description: siteConfig.description[localeParam],
-    alternates,
-    openGraph: {
-      url: alternates.canonical,
-      locale: ogLocale(localeParam),
-      images: [absoluteAssetUrl("/images/lorvex/hero.jpg")],
-    },
-  };
+  const copy = storefrontCopy(localeParam);
+  return localePageMetadata({
+    locale: localeParam,
+    path: "",
+    title: copy.homeTitle,
+    description: copy.homeDescription,
+  });
 }
 
 export default async function HomePage({
@@ -63,6 +54,7 @@ export default async function HomePage({
   if (!isLocale(localeParam)) notFound();
   const locale = localeParam;
   const dictionary = getDictionary(locale);
+  const copy = storefrontCopy(locale);
 
   const [
     featured,
@@ -125,16 +117,7 @@ export default async function HomePage({
   return (
     <>
       <HeroSection locale={locale} dictionary={dictionary} content={hero} />
-      <InfiniteMarquee
-        items={[
-          "Swiss Movement",
-          "Maison LORVEX",
-          "Casablanca",
-          "Éditions Limitées",
-          "Conciergerie Privée",
-          "Authenticité Garantie",
-        ]}
-      />
+      <InfiniteMarquee items={copy.marquee} />
       <PersonalizedHomeBlocks locale={locale} />
       <CollectionsSection
         locale={locale}
@@ -169,8 +152,8 @@ export default async function HomePage({
         products={bestsellers}
         viewAllLabel={dictionary.common.viewAll}
       />
-      <WhyChooseUs title={dictionary.sections.whyUs} />
-      <StatsSection title={dictionary.sections.stats} />
+      <WhyChooseUs title={dictionary.sections.whyUs} items={copy.whyUs} />
+      <StatsSection title={dictionary.sections.stats} stats={copy.stats} />
       <BrandStory locale={locale} title={dictionary.sections.story} />
       <TestimonialsSection
         title={dictionary.sections.testimonials}

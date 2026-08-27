@@ -10,11 +10,10 @@ import {
   getProductBySlug,
   getRecentPurchaseForPopup,
 } from "@/server/repositories/catalog";
-import { prisma } from "@/lib/prisma";
-import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
+import { localePageMetadata } from "@/lib/page-metadata";
+import { getStorefrontFaq, storefrontCopy } from "@/content/storefront-copy";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
-  absoluteAssetUrl,
   buildBreadcrumbListJsonLd,
   buildProductJsonLd,
 } from "@/lib/json-ld";
@@ -26,20 +25,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(slug);
   if (!product || !isLocale(locale)) notFound();
   const image = product.ogImage ?? product.media.find((item) => item.type === "IMAGE")?.url;
-  const alternates = localeAlternates(locale, `/product/${slug}`);
-  return {
+  const description =
+    product.metaDescription ??
+    product.shortDescription ??
+    product.description.slice(0, 160);
+  return localePageMetadata({
+    locale,
+    path: `/product/${slug}`,
     title: product.metaTitle ?? product.name,
-    description: product.metaDescription ?? product.shortDescription ?? product.description.slice(0, 160),
-    alternates,
-    openGraph: {
-      type: "website",
-      title: product.name,
-      description: product.shortDescription ?? product.description.slice(0, 160),
-      images: image ? [absoluteAssetUrl(image)] : [absoluteAssetUrl("/images/lorvex/hero.jpg")],
-      url: alternates.canonical,
-      locale: ogLocale(locale),
-    },
-  };
+    description,
+    image,
+  });
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -65,16 +61,11 @@ export default async function ProductPage({ params }: Props) {
     .map((rel) => toCard(rel.related));
   const relationIds = product.relatedFrom.map((rel) => rel.relatedId);
 
-  const [aiRecommendations, recentPurchase, faqRows] = await Promise.all([
+  const [aiRecommendations, recentPurchase] = await Promise.all([
     getAiRecommendations(product, relationIds, 4),
     getRecentPurchaseForPopup(),
-    prisma.faqItem.findMany({
-      where: { isActive: true },
-      orderBy: [{ sortOrder: "asc" }],
-      take: 5,
-      select: { id: true, question: true, answer: true },
-    }),
   ]);
+  const faqRows = getStorefrontFaq(localeParam);
 
   const collections = await getCollectionsForProducts(
     [...relationIds, ...aiRecommendations.map((p) => p.id)],
@@ -95,7 +86,12 @@ export default async function ProductPage({ params }: Props) {
     isLimitedEdition: product.isLimitedEdition, isNewArrival: product.isNewArrival,
     images: product.media
       .filter((item) => item.type === "IMAGE")
-      .map((item) => ({ id: item.id, type: "IMAGE" as const, url: item.url, alt: item.alt ?? product.name })),
+      .map((item) => ({
+        id: item.id,
+        type: "IMAGE" as const,
+        url: item.url,
+        alt: item.alt ?? storefrontCopy(localeParam).watchAlt(product.name),
+      })),
     videos: product.media
       .filter((item) => item.type === "VIDEO")
       .map((item) => ({ id: item.id, type: "VIDEO" as const, url: item.url, alt: item.alt ?? product.name })),
