@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
-import { publicPageUrl } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import { prisma } from "@/lib/prisma";
 
 export async function generateMetadata({
@@ -13,9 +13,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
+  const alternates = localeAlternates(locale, "/collections");
   return {
     title: "Collections",
-    alternates: { canonical: publicPageUrl(`/${locale}/collections`) },
+    alternates,
+    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
   };
 }
 

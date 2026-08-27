@@ -2,7 +2,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
-import { publicPageUrl } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
+  const alternates = localeAlternates(locale, "/contact");
   return {
     title: "Contact our concierge",
-    alternates: { canonical: publicPageUrl(`/${locale}/contact`) },
+    alternates,
+    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
   };
 }
 

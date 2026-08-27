@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
-import { publicPageUrl, siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import {
   HeroSection,
   ProductRail,
@@ -34,16 +35,14 @@ export async function generateMetadata({
   const { locale: localeParam } = await params;
   if (!isLocale(localeParam)) return {};
   const settings = await getStorefrontSettings();
+  const alternates = localeAlternates(localeParam, "");
   return {
     title: settings.tagline || siteConfig.tagline[localeParam],
     description: siteConfig.description[localeParam],
-    alternates: {
-      canonical: publicPageUrl(`/${localeParam}`),
-      languages: {
-        fr: "/fr",
-        en: "/en",
-        ar: "/ar",
-      },
+    alternates,
+    openGraph: {
+      url: alternates.canonical,
+      locale: ogLocale(localeParam),
     },
   };
 }

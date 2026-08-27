@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Check, ChevronDown } from "lucide-react";
 import { siteConfig, type Locale } from "@/config/site";
+import { HREFLANG_BY_LOCALE, swapLocalePath } from "@/lib/i18n-seo";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -57,7 +58,7 @@ export function LocaleSwitcher({
       >
         {siteConfig.locales.map((loc) => {
           const meta = LOCALE_META[loc];
-          const href = pathname.replace(`/${locale}`, `/${loc}`);
+          const href = swapLocalePath(pathname, locale, loc);
           const active = loc === locale;
           return (
             <DropdownMenuItem
@@ -70,7 +71,7 @@ export function LocaleSwitcher({
             >
               <Link
                 href={href}
-                hrefLang={loc}
+                hrefLang={HREFLANG_BY_LOCALE[loc]}
                 lang={loc}
                 aria-current={active ? "true" : undefined}
                 onClick={() => onNavigate?.()}

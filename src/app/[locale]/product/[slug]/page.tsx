@@ -12,25 +12,27 @@ import {
 } from "@/server/repositories/catalog";
 import { prisma } from "@/lib/prisma";
 import { publicPageUrl } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) return {};
+  if (!product || !isLocale(locale)) return {};
   const image = product.ogImage ?? product.media.find((item) => item.type === "IMAGE")?.url;
-  const canonical = isLocale(locale) ? publicPageUrl(`/${locale}/product/${slug}`) : undefined;
+  const alternates = localeAlternates(locale, `/product/${slug}`);
   return {
     title: product.metaTitle ?? product.name,
     description: product.metaDescription ?? product.shortDescription ?? product.description.slice(0, 160),
-    alternates: canonical ? { canonical } : undefined,
+    alternates,
     openGraph: {
       type: "website",
       title: product.name,
       description: product.shortDescription ?? product.description.slice(0, 160),
       images: image ? [image] : [],
-      url: canonical,
+      url: alternates.canonical,
+      locale: ogLocale(locale),
     },
   };
 }

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { publicPageUrl, siteConfig } from "@/config/site";
+import { hreflangLanguages } from "@/lib/i18n-seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await Promise.all([
@@ -26,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: path === "" ? ("daily" as const) : ("weekly" as const),
         priority: path === "" ? 1 : 0.7,
+        alternates: { languages: hreflangLanguages(path) },
       })),
     );
     entries.push(
@@ -34,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: product.updatedAt,
         changeFrequency: "weekly" as const,
         priority: 0.8,
+        alternates: { languages: hreflangLanguages(`/product/${product.slug}`) },
       })),
     );
     entries.push(
@@ -42,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: collection.updatedAt,
         changeFrequency: "weekly" as const,
         priority: 0.7,
+        alternates: { languages: hreflangLanguages(`/collections/${collection.slug}`) },
       })),
     );
   }

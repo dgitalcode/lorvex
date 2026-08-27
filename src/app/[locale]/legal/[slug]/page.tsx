@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
-import { siteConfig, publicPageUrl, type Locale } from "@/config/site";
+import { siteConfig, type Locale } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import {
   getLegalDocument,
   isLegalSlug,
@@ -36,25 +37,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     supportPhone: settings.supportPhone,
   });
 
-  const path = `/${localeParam}/legal/${slug}`;
-  const canonical = publicPageUrl(path);
-  const languages = Object.fromEntries(
-    siteConfig.locales.map((locale) => [locale, `/${locale}/legal/${slug}`]),
-  );
+  const alternates = localeAlternates(localeParam, `/legal/${slug}`);
 
   return {
     title: document.title,
     description: document.description,
-    alternates: {
-      canonical,
-      languages,
-    },
+    alternates,
     openGraph: {
       title: `${document.title} · ${settings.siteName}`,
       description: document.description,
-      url: canonical,
+      url: alternates.canonical,
       siteName: settings.siteName,
-      locale: localeParam,
+      locale: ogLocale(localeParam),
       type: "website",
     },
     robots: {

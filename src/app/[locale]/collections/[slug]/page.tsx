@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/storefront/product-card";
 import { isLocale } from "@/i18n/get-dictionary";
-import { publicPageUrl } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import { prisma } from "@/lib/prisma";
 import { searchProducts } from "@/server/repositories/catalog";
 
@@ -11,13 +11,13 @@ type Props = { params: Promise<{ locale: string; slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const collection = await prisma.collection.findUnique({ where: { slug }, select: { name: true, seoTitle: true, seoDescription: true, description: true } });
-  if (!collection) return {};
+  if (!collection || !isLocale(locale)) return {};
+  const alternates = localeAlternates(locale, `/collections/${slug}`);
   return {
     title: collection.seoTitle ?? collection.name,
     description: collection.seoDescription ?? collection.description,
-    alternates: isLocale(locale)
-      ? { canonical: publicPageUrl(`/${locale}/collections/${slug}`) }
-      : undefined,
+    alternates,
+    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
   };
 }
 

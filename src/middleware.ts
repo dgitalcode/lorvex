@@ -5,10 +5,24 @@ import { isAdminRouteAuthorized } from "@/lib/auth-redirect";
 
 const { auth } = NextAuth(authConfig);
 
+function storefrontLocale(pathname: string): "fr" | "en" | "ar" | null {
+  const segment = pathname.split("/")[1];
+  if (segment === "fr" || segment === "en" || segment === "ar") return segment;
+  return null;
+}
+
 export default auth((request) => {
   const { pathname } = request.nextUrl;
+  const locale = storefrontLocale(pathname);
+  const requestHeaders = new Headers(request.headers);
+  if (locale) {
+    requestHeaders.set("x-lorvex-locale", locale);
+  }
+
   if (!pathname.startsWith("/admin")) {
-    return NextResponse.next();
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 
   if (!request.auth?.user) {
@@ -22,9 +36,15 @@ export default auth((request) => {
     return NextResponse.redirect(new URL("/fr/account", request.url));
   }
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 });
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/(fr|en|ar)",
+    "/(fr|en|ar)/:path*",
+  ],
 };

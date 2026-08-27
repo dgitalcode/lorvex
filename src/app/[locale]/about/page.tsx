@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/get-dictionary";
-import { publicPageUrl } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 
 export async function generateMetadata({
   params,
@@ -10,10 +10,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
+  const alternates = localeAlternates(locale, "/about");
   return {
     title: "Our maison",
     description: "Discover LORVEX, Morocco's destination for exceptional watchmaking.",
-    alternates: { canonical: publicPageUrl(`/${locale}/about`) },
+    alternates,
+    openGraph: { url: alternates.canonical, locale: ogLocale(locale) },
   };
 }
 

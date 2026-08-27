@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
-import { publicPageUrl } from "@/config/site";
+import { localeAlternates, ogLocale } from "@/lib/i18n-seo";
 import { searchProducts, getFilterFacets } from "@/server/repositories/catalog";
 import { ShopClient } from "@/components/storefront/shop-client";
 
@@ -13,9 +13,14 @@ export async function generateMetadata({
   const { locale: localeParam } = await params;
   if (!isLocale(localeParam)) return {};
   const dictionary = getDictionary(localeParam);
+  const alternates = localeAlternates(localeParam, "/shop");
   return {
     title: dictionary.nav.shop,
-    alternates: { canonical: publicPageUrl(`/${localeParam}/shop`) },
+    alternates,
+    openGraph: {
+      url: alternates.canonical,
+      locale: ogLocale(localeParam),
+    },
   };
 }
 

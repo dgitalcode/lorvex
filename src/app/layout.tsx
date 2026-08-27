@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { headers } from "next/headers";
 import { Providers } from "@/components/shared/providers";
 import { PwaRegister } from "@/components/shared/pwa-register";
 import { siteConfig } from "@/config/site";
+import { getDirection, isLocale } from "@/i18n/get-dictionary";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -45,14 +47,18 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localeHeader = (await headers()).get("x-lorvex-locale") ?? "fr";
+  const locale = isLocale(localeHeader) ? localeHeader : "fr";
+
   return (
     <html
-      lang="fr"
+      lang={locale}
+      dir={getDirection(locale)}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${display.variable} ${sans.variable}`}
