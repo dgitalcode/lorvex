@@ -79,7 +79,7 @@ const copy: Record<Locale, PageCopy> = {
     collectionLimitedEyebrow: "Collection limitée",
     collectionPieces: (count) =>
       count === 1 ? "1 montre" : `${count} montres`,
-    aboutTitle: "La maison LORVEX",
+    aboutTitle: "La maison",
     aboutDescription:
       "LORVEX sélectionne des montres de prestige pour le Maroc : curation, authenticité et conciergerie, sans vitrine inventée.",
     aboutEyebrow: "La maison",
@@ -214,7 +214,7 @@ const copy: Record<Locale, PageCopy> = {
     collectionLimitedEyebrow: "Limited collection",
     collectionPieces: (count) =>
       count === 1 ? "1 watch" : `${count} watches`,
-    aboutTitle: "The LORVEX house",
+    aboutTitle: "The house",
     aboutDescription:
       "LORVEX curates prestige watches for Morocco: authentication, concierge service, and an online maison — without claiming a store network we have not published.",
     aboutEyebrow: "The house",

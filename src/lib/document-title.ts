@@ -26,6 +26,11 @@ export function composeDocumentTitle(
 
   const core = parts.join(" | ");
   if (!core || core.toUpperCase() === brand.toUpperCase()) return brand;
+
+  const words = core.split(/\s+/);
+  const lastWord = words[words.length - 1];
+  if (lastWord?.toUpperCase() === brand.toUpperCase()) return core;
+
   return `${core} | ${brand}`;
 }
 

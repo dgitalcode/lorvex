@@ -23,8 +23,8 @@ describe("composeDocumentTitle", () => {
       "Noir Imperial 40 | LORVEX",
     );
     assert.equal(
-      composeDocumentTitle("Noir Imperial 40 · LORVEX"),
-      "Noir Imperial 40 | LORVEX",
+      composeDocumentTitle("La maison LORVEX"),
+      "La maison LORVEX",
     );
   });
 

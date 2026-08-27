@@ -73,14 +73,8 @@ export function CinematicHero({
     mediaType === "video" ? content?.videoUrl?.trim() || "" : "";
   const videoOk = Boolean(videoUrl) && !reduce && failedVideoUrl !== videoUrl;
   const showVideo = videoOk;
-  const title =
-    locale === "fr" && content?.title?.trim()
-      ? content.title.trim()
-      : dictionary.hero.title;
-  const subtitle =
-    locale === "fr" && content?.subtitle?.trim()
-      ? content.subtitle.trim()
-      : dictionary.hero.subtitle;
+  const title = dictionary.hero.title;
+  const subtitle = dictionary.hero.subtitle;
   const mime = videoUrl ? videoMimeFromUrl(videoUrl) : undefined;
 
   useEffect(() => {
