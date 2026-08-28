@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import {
   PRODUCTION_SITE_ORIGIN,
@@ -9,6 +11,7 @@ import { hreflangLanguages, localeCanonical } from "@/lib/i18n-seo";
 import { INDEXABLE_STATIC_PATHS, SITEMAP_EXCLUDED_PATHS } from "./seo-indexability";
 import {
   buildRobotsDocument,
+  missingCatalogMetadata,
   seoOutputHasLeakage,
   shopQueryIsIndexable,
 } from "./seo-indexability";
@@ -58,7 +61,7 @@ describe("robots", () => {
   it("declares the production sitemap and does not block the storefront", () => {
     const robots = buildRobotsDocument(PRODUCTION_SITE_ORIGIN);
     assert.equal(robots.sitemap, `${PRODUCTION_SITE_ORIGIN}/sitemap.xml`);
-    assert.equal(robots.host, PRODUCTION_SITE_ORIGIN);
+    assert.equal(robots.host, undefined);
     const rules = Array.isArray(robots.rules) ? robots.rules : [robots.rules];
     const raw = rules[0]?.disallow;
     const disallow = Array.isArray(raw) ? raw : raw ? [raw] : [];
@@ -66,6 +69,7 @@ describe("robots", () => {
     assert.ok(disallow.includes("/*/search"));
     assert.ok(disallow.includes("/*/cart"));
     assert.equal(disallow.includes("/"), false);
+    assert.equal("host" in robots, false);
     assert.equal(JSON.stringify(robots).includes("vercel.app"), false);
   });
 });
@@ -109,6 +113,56 @@ describe("shop query indexability", () => {
   });
 });
 
+describe("missing catalog metadata", () => {
+  it("is noindex and does not emit canonical or hreflang", () => {
+    const metadata = missingCatalogMetadata();
+    assert.deepEqual(metadata.robots, { index: false, follow: false });
+    assert.equal("alternates" in metadata, false);
+    assert.equal("openGraph" in metadata, false);
+    assert.equal(JSON.stringify(metadata).includes("canonical"), false);
+    assert.equal(JSON.stringify(metadata).includes("hreflang"), false);
+  });
+
+  it("disables on-demand params so unknown slugs 404 at the router", () => {
+    const productPage = readFileSync(
+      join(import.meta.dirname, "../app/[locale]/product/[slug]/page.tsx"),
+      "utf8",
+    );
+    const collectionPage = readFileSync(
+      join(import.meta.dirname, "../app/[locale]/collections/[slug]/page.tsx"),
+      "utf8",
+    );
+    assert.ok(productPage.includes("export const dynamicParams = false"));
+    assert.ok(collectionPage.includes("export const dynamicParams = false"));
+    assert.equal(productPage.includes("notFound();"), true);
+    assert.equal(collectionPage.includes("notFound();"), true);
+  });
+});
+
+describe("Vercel production alias redirects", () => {
+  it("permanently redirects known .vercel.app hosts to www.lorvex.ma", () => {
+    const vercel = JSON.parse(
+      readFileSync(join(import.meta.dirname, "../../vercel.json"), "utf8"),
+    ) as {
+      redirects: {
+        source: string;
+        destination: string;
+        permanent: boolean;
+        has: { type: string; value: string }[];
+      }[];
+    };
+    const hosts = vercel.redirects.map((rule) => rule.has[0]?.value);
+    assert.ok(hosts.includes("lorvex-eight.vercel.app"));
+    assert.ok(hosts.includes("lorvex-d-gitalcode-s-projects.vercel.app"));
+    for (const rule of vercel.redirects) {
+      assert.equal(rule.permanent, true);
+      assert.equal(rule.destination, "https://www.lorvex.ma/:path*");
+      assert.equal(rule.has[0]?.type, "host");
+      assert.equal(rule.destination.includes("vercel.app"), false);
+    }
+  });
+});
+
 describe("leakage", () => {
   it("flags Vercel, apex, and localhost in SEO strings", () => {
     assert.equal(seoOutputHasLeakage("https://www.lorvex.ma/fr"), false);
@@ -120,3 +174,4 @@ describe("leakage", () => {
     assert.equal(seoOutputHasLeakage("https://lorvex.ma/fr"), true);
   });
 });
+

@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
+
+export const metadata: Metadata = {
+  title: "Page introuvable",
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (

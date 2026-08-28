@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/storefront/product-card";
 import { isLocale, getDictionary } from "@/i18n/get-dictionary";
 import { localePageMetadata } from "@/lib/page-metadata";
+import { missingCatalogMetadata } from "@/lib/seo-indexability";
 import { storefrontCopy } from "@/content/storefront-copy";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
@@ -16,6 +17,7 @@ import { searchProducts } from "@/server/repositories/catalog";
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export const revalidate = 60;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   try {
@@ -42,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       coverUrl: true,
     },
   });
-  if (!collection || !isLocale(locale)) notFound();
+  if (!collection || !isLocale(locale)) return missingCatalogMetadata();
   const copy = storefrontCopy(locale);
   const image = collection.coverUrl
     ? collection.coverUrl

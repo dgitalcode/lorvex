@@ -1,4 +1,4 @@
-import type { MetadataRoute } from "next";
+import type { Metadata, MetadataRoute } from "next";
 import { resolvePublicSiteUrl } from "@/config/site";
 
 /** Clean storefront paths that belong in the sitemap (locale prefix added by the sitemap). */
@@ -27,6 +27,17 @@ export const SITEMAP_EXCLUDED_PATHS = [
  * Only the clean shop listing is indexable.
  * Default page/sort/availability values are treated as the canonical listing.
  */
+/**
+ * Metadata for unknown product/collection slugs.
+ * Must not call notFound() from generateMetadata (Next.js can emit HTTP 200).
+ * The page still calls notFound() so the response status is 404.
+ */
+export function missingCatalogMetadata(): Metadata {
+  return {
+    robots: { index: false, follow: false },
+  };
+}
+
 export function shopQueryIsIndexable(
   params: Record<string, string | string[] | undefined>,
 ): boolean {
@@ -60,7 +71,6 @@ export function buildRobotsDocument(
       },
     ],
     sitemap: `${origin}/sitemap.xml`,
-    host: origin,
   };
 }
 

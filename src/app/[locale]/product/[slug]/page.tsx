@@ -11,6 +11,7 @@ import {
   getCachedRecentPurchase,
 } from "@/server/repositories/catalog";
 import { localePageMetadata } from "@/lib/page-metadata";
+import { missingCatalogMetadata } from "@/lib/seo-indexability";
 import { getStorefrontFaq, storefrontCopy } from "@/content/storefront-copy";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
@@ -21,6 +22,7 @@ import {
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export const revalidate = 60;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   try {
@@ -28,7 +30,6 @@ export async function generateStaticParams() {
     const products = await prisma.product.findMany({
       where: { status: "ACTIVE" },
       select: { slug: true },
-      take: 80,
     });
     return ["fr", "en", "ar"].flatMap((locale) =>
       products.map((product) => ({ locale, slug: product.slug })),
@@ -41,7 +42,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product || !isLocale(locale)) notFound();
+  if (!product || !isLocale(locale)) return missingCatalogMetadata();
   const image = product.ogImage ?? product.media.find((item) => item.type === "IMAGE")?.url;
   const description =
     product.metaDescription ??
