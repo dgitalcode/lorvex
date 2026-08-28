@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { PageTransition } from "@/components/luxury/page-transition";
 import type { Locale } from "@/config/site";
 import type { Dictionary } from "@/i18n/dictionaries";
 
@@ -17,28 +16,18 @@ const SearchOverlay = dynamic(
   { ssr: false },
 );
 
+/** Idle luxury chrome only. Must not wrap page HTML or it hydrates the whole storefront. */
 export function StorefrontExperience({
   locale,
   dictionary,
-  children,
 }: {
   locale: Locale;
   dictionary: Dictionary;
-  children: React.ReactNode;
 }) {
   return (
     <>
       <LuxuryCursor />
       <SearchOverlay locale={locale} dictionary={dictionary} />
-      {children}
     </>
   );
-}
-
-export function StorefrontPageTransition({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <PageTransition>{children}</PageTransition>;
 }

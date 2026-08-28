@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 
 const display = Cormorant_Garamond({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "700"],
+  weight: ["400"],
   variable: "--font-display",
   display: "swap",
   preload: true,
@@ -24,6 +24,7 @@ const sans = Outfit({
   subsets: ["latin", "latin-ext"],
   variable: "--font-sans",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

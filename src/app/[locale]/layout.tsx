@@ -6,10 +6,7 @@ import { SiteFooter } from "@/components/storefront/site-footer";
 import { getCachedAnnouncement } from "@/server/repositories/catalog";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
-import {
-  StorefrontExperience,
-  StorefrontPageTransition,
-} from "@/components/luxury/storefront-experience";
+import { StorefrontExperience } from "@/components/luxury/storefront-experience";
 import { AnalyticsTracker } from "@/components/shared/analytics-tracker";
 import { RoutePrefetcher } from "@/components/shared/route-prefetcher";
 
@@ -62,28 +59,27 @@ export default async function LocaleLayout({
           __html: `document.documentElement.lang=${JSON.stringify(locale)};document.documentElement.dir=${JSON.stringify(direction)};`,
         }}
       />
-      <StorefrontExperience locale={locale} dictionary={dictionary}>
-        <AnalyticsTracker />
-        <RoutePrefetcher locale={locale} />
-        <SiteHeader
-          locale={locale}
-          dictionary={dictionary}
-          announcement={announcementMessage}
-          settings={settings}
-        />
-        <main id="main-content" className="flex-1">
-          <StorefrontPageTransition>{children}</StorefrontPageTransition>
-        </main>
-        <SiteFooter
-          locale={locale}
-          dictionary={dictionary}
-          settings={settings}
-        />
-        <WhatsAppButton
-          locale={locale}
-          whatsappNumber={settings.whatsappNumber}
-        />
-      </StorefrontExperience>
+      <StorefrontExperience locale={locale} dictionary={dictionary} />
+      <AnalyticsTracker />
+      <RoutePrefetcher locale={locale} />
+      <SiteHeader
+        locale={locale}
+        dictionary={dictionary}
+        announcement={announcementMessage}
+        settings={settings}
+      />
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
+      <SiteFooter
+        locale={locale}
+        dictionary={dictionary}
+        settings={settings}
+      />
+      <WhatsAppButton
+        locale={locale}
+        whatsappNumber={settings.whatsappNumber}
+      />
     </div>
   );
 }

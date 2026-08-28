@@ -23,7 +23,6 @@ import { useLuxuryUiStore } from "@/stores/luxury-ui-store";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { useSession } from "next-auth/react";
-import { Magnetic } from "@/components/luxury/magnetic";
 import {
   Sheet,
   SheetContent,
@@ -55,7 +54,7 @@ const megaItems = (locale: Locale) => [
   },
 ];
 
-/** Publishes the real chrome height (safe-area + announcement + nav), never the mega menu. */
+/** Publishes the real chrome height after idle so first paint is not blocked by forced reflow. */
 function useHeaderChromeHeight(
   chromeRef: React.RefObject<HTMLElement | null>,
   deps: unknown[],
@@ -63,6 +62,9 @@ function useHeaderChromeHeight(
   useEffect(() => {
     const el = chromeRef.current;
     if (!el) return;
+
+    let frame = 0;
+    let observer: ResizeObserver | null = null;
 
     const publish = () => {
       const height = Math.ceil(el.getBoundingClientRect().height);
@@ -77,17 +79,36 @@ function useHeaderChromeHeight(
       document.documentElement.style.setProperty("--header-height", next);
     };
 
-    publish();
-    const frame = requestAnimationFrame(publish);
-    const observer = new ResizeObserver(publish);
-    observer.observe(el);
-    window.addEventListener("resize", publish, { passive: true });
-    window.addEventListener("orientationchange", publish);
-    window.visualViewport?.addEventListener("resize", publish);
+    const start = () => {
+      publish();
+      frame = requestAnimationFrame(publish);
+      observer = new ResizeObserver(publish);
+      observer.observe(el);
+      window.addEventListener("resize", publish, { passive: true });
+      window.addEventListener("orientationchange", publish);
+      window.visualViewport?.addEventListener("resize", publish);
+    };
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        cb: () => void,
+        opts?: { timeout: number },
+      ) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const idleId =
+      typeof idleWindow.requestIdleCallback === "function"
+        ? idleWindow.requestIdleCallback(start, { timeout: 2500 })
+        : window.setTimeout(start, 1);
 
     return () => {
+      if (typeof idleWindow.cancelIdleCallback === "function") {
+        idleWindow.cancelIdleCallback(idleId as number);
+      } else {
+        window.clearTimeout(idleId as number);
+      }
       cancelAnimationFrame(frame);
-      observer.disconnect();
+      observer?.disconnect();
       window.removeEventListener("resize", publish);
       window.removeEventListener("orientationchange", publish);
       window.visualViewport?.removeEventListener("resize", publish);
@@ -313,15 +334,13 @@ export function SiteHeader({
               </Sheet>
             </div>
 
-            <Magnetic strength={0.2}>
-              <Link
-                href={`/${locale}`}
-                onClick={closeMobile}
-                className="font-display text-2xl tracking-[0.28em] md:text-[1.65rem]"
-              >
-                {settings.siteName}
-              </Link>
-            </Magnetic>
+            <Link
+              href={`/${locale}`}
+              onClick={closeMobile}
+              className="font-display text-2xl tracking-[0.28em] md:text-[1.65rem]"
+            >
+              {settings.siteName}
+            </Link>
 
             <nav className="hidden items-center gap-8 md:flex">
               <button

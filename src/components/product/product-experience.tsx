@@ -75,7 +75,7 @@ export function ProductExperience({
     <div className="page-pad">
       <div className="luxury-container">
         <div className="grid gap-12 lg:grid-cols-[1.15fr_.85fr] lg:gap-16">
-          <FadeIn y={18} className="min-w-0">
+          <div className="min-w-0">
             <ProductGallery
               name={product.name}
               images={images}
@@ -87,7 +87,7 @@ export function ProductExperience({
                 ["Movement", "Glass", "Case", "Water"].includes(s.group),
               )}
             />
-          </FadeIn>
+          </div>
 
           <FadeIn
             y={18}

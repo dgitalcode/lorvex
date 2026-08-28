@@ -58,6 +58,7 @@ export function HeroSection({
             fill
             priority
             fetchPriority="high"
+            decoding="sync"
             quality={85}
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
