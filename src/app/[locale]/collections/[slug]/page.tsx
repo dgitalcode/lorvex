@@ -14,6 +14,22 @@ import { prisma } from "@/lib/prisma";
 import { searchProducts } from "@/server/repositories/catalog";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
+
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  try {
+    const rows = await prisma.collection.findMany({
+      select: { slug: true },
+    });
+    return ["fr", "en", "ar"].flatMap((locale) =>
+      rows.map((row) => ({ locale, slug: row.slug })),
+    );
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const collection = await prisma.collection.findUnique({

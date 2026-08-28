@@ -13,6 +13,10 @@ import {
 import { AnalyticsTracker } from "@/components/shared/analytics-tracker";
 import { RoutePrefetcher } from "@/components/shared/route-prefetcher";
 
+export function generateStaticParams() {
+  return [{ locale: "fr" }, { locale: "en" }, { locale: "ar" }];
+}
+
 export default async function LocaleLayout({
   children,
   params,
@@ -53,6 +57,11 @@ export default async function LocaleLayout({
       <a href="#main-content" className="skip-link">
         {skipLabel}
       </a>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.lang=${JSON.stringify(locale)};document.documentElement.dir=${JSON.stringify(direction)};`,
+        }}
+      />
       <StorefrontExperience locale={locale} dictionary={dictionary}>
         <AnalyticsTracker />
         <RoutePrefetcher locale={locale} />

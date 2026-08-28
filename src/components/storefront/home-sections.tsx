@@ -4,10 +4,7 @@ import { ProductCard, type ProductCardData } from "@/components/storefront/produ
 import { Button } from "@/components/ui/button";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
 import { CinematicHero, type CinematicHeroContent } from "@/components/luxury/cinematic-hero";
-import { ImageReveal } from "@/components/luxury/image-reveal";
-import { HorizontalScroll } from "@/components/luxury/horizontal-scroll";
-import { Magnetic } from "@/components/luxury/magnetic";
-import { TextReveal } from "@/components/luxury/text-reveal";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/config/site";
 import { siteConfig } from "@/config/site";
@@ -24,27 +21,6 @@ export function HeroSection({
 }) {
   return (
     <CinematicHero locale={locale} dictionary={dictionary} content={content} />
-  );
-}
-
-export function HorizontalProductRail({
-  locale,
-  title,
-  products,
-}: {
-  locale: Locale;
-  title: string;
-  products: ProductCardData[];
-}) {
-  if (!products.length) return null;
-  return (
-    <HorizontalScroll title={title} className="bg-secondary/20">
-      {products.map((product) => (
-        <div key={product.id} className="w-[72vw] max-w-[340px] shrink-0 md:w-[320px]">
-          <ProductCard product={product} locale={locale} />
-        </div>
-      ))}
-    </HorizontalScroll>
   );
 }
 
@@ -131,11 +107,12 @@ export function CollectionsSection({
                 className="group relative block aspect-[4/5] overflow-hidden border border-border/40 bg-muted hover-lift"
               >
                 {collection.coverUrl && (
-                  <ImageReveal
+                  <StorefrontImage
                     src={collection.coverUrl}
                     alt={collection.name}
-                    className="absolute inset-0 transition-transform duration-700 group-hover:scale-105"
+                    fill
                     sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
@@ -228,28 +205,29 @@ export function BrandStory({
     <section className="section-pad">
       <div className="luxury-container grid items-center gap-12 lg:grid-cols-2">
         <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
-          <ImageReveal
+          <StorefrontImage
             src="/images/lorvex/atelier.jpg"
             alt={copy.brandStoryAlt}
+            fill
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="absolute inset-0 h-full w-full"
+            className="object-cover"
           />
         </div>
         <FadeIn delay={0.12}>
           <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
             {siteConfig.name}
           </p>
-          <TextReveal className="mt-4 font-display text-4xl md:text-5xl">
+          <h2 className="mt-4 font-display text-4xl md:text-5xl">
             {title}
-          </TextReveal>
+          </h2>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground">
             {copy.homeDescription}
           </p>
-          <Magnetic className="mt-8">
+          <div className="mt-8">
             <Button asChild variant="outline" size="lg">
               <Link href={`/${locale}/about`}>{copy.brandStoryCta}</Link>
             </Button>
-          </Magnetic>
+          </div>
         </FadeIn>
       </div>
     </section>
@@ -333,11 +311,12 @@ export function InstagramSection({
               rel="noreferrer"
               className="relative aspect-square overflow-hidden bg-muted"
             >
-              <ImageReveal
+              <StorefrontImage
                 src={src}
                 alt={`LORVEX lifestyle ${index + 1}`}
+                fill
                 sizes="25vw"
-                className="absolute inset-0"
+                className="object-cover"
               />
             </a>
           ))}

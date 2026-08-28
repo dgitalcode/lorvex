@@ -443,6 +443,12 @@ export async function getRecentPurchaseForPopup() {
   };
 }
 
+export const getCachedRecentPurchase = unstable_cache(
+  getRecentPurchaseForPopup,
+  ["storefront-recent-purchase-popup"],
+  { revalidate: 120 },
+);
+
 export async function getFilterFacets() {
   const [brands, collections, price] = await Promise.all([
     prisma.brand.findMany({

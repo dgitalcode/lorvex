@@ -1,9 +1,6 @@
-import NextAuth from "next-auth";
-import { NextResponse } from "next/server";
-import { authConfig } from "@/lib/auth.config";
+import { getToken } from "next-auth/jwt";
+import { NextResponse, type NextRequest } from "next/server";
 import { isAdminRouteAuthorized } from "@/lib/auth-redirect";
-
-const { auth } = NextAuth(authConfig);
 
 function storefrontLocale(pathname: string): "fr" | "en" | "ar" | null {
   const segment = pathname.split("/")[1];
@@ -11,35 +8,39 @@ function storefrontLocale(pathname: string): "fr" | "en" | "ar" | null {
   return null;
 }
 
-export default auth((request) => {
-  const { pathname } = request.nextUrl;
-  const locale = storefrontLocale(pathname);
+function withLocaleHeaders(request: NextRequest) {
+  const locale = storefrontLocale(request.nextUrl.pathname);
   const requestHeaders = new Headers(request.headers);
   if (locale) {
     requestHeaders.set("x-lorvex-locale", locale);
   }
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+}
 
+export default async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   if (!pathname.startsWith("/admin")) {
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    });
+    return withLocaleHeaders(request);
   }
 
-  if (!request.auth?.user) {
+  const token = await getToken({
+    req: request,
+    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  });
+  if (!token) {
     const signInUrl = new URL("/fr/auth/sign-in", request.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
   }
 
-  // Authenticated customers must not enter the admin surface.
-  if (!isAdminRouteAuthorized(request.auth)) {
+  if (!isAdminRouteAuthorized({ user: { role: token.role as string } })) {
     return NextResponse.redirect(new URL("/fr/account", request.url));
   }
 
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-});
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

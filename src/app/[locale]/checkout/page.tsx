@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/get-dictionary";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Secure checkout", robots: { index: false } };
+export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

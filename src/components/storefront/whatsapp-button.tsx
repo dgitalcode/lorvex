@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import type { Locale } from "@/config/site";
 import { getWhatsAppStrings } from "@/i18n/auth-strings";
 import { cn } from "@/lib/utils";
@@ -27,13 +26,20 @@ export function WhatsAppButton({
   whatsappNumber: string;
 }) {
   const t = getWhatsAppStrings(locale);
-  const reduce = useReducedMotion();
+  const [reduce, setReduce] = useState(false);
   const [ready, setReady] = useState(false);
   const [pressed, setPressed] = useState(false);
 
   useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduce(media.matches);
+    sync();
+    media.addEventListener("change", sync);
     const id = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(id);
+    return () => {
+      media.removeEventListener("change", sync);
+      cancelAnimationFrame(id);
+    };
   }, []);
 
   const number = whatsappNumber.replace(/\D/g, "");

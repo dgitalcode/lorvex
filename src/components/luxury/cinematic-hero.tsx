@@ -4,10 +4,7 @@ import Link from "next/link";
 import { StorefrontImage } from "@/components/shared/storefront-image";
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
-import { useReducedMotion } from "framer-motion";
 import { gsap, registerGsap } from "@/components/luxury/gsap-provider";
-import { SplitHeadline } from "@/components/luxury/text-reveal";
-import { Magnetic } from "@/components/luxury/magnetic";
 import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/config/site";
@@ -53,12 +50,20 @@ export function CinematicHero({
   dictionary: Dictionary;
   content?: CinematicHeroContent;
 }) {
-  const reduce = useReducedMotion();
+  const [reduce, setReduce] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [failedVideoUrl, setFailedVideoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduce(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   const mediaType = resolveMediaType(content);
   const posterUrl =
@@ -106,35 +111,52 @@ export function CinematicHero({
 
   useGSAP(
     () => {
-      registerGsap();
       if (reduce || !rootRef.current) return;
+      let idleId = 0;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-      if (mediaRef.current) {
-        gsap.to(mediaRef.current, {
-          yPercent: 12,
-          ease: "none",
-          scrollTrigger: {
-            trigger: rootRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 0.6,
-          },
-        });
+      const setup = () => {
+        registerGsap();
+        if (mediaRef.current) {
+          gsap.to(mediaRef.current, {
+            yPercent: 12,
+            ease: "none",
+            scrollTrigger: {
+              trigger: rootRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.6,
+            },
+          });
+        }
+
+        if (copyRef.current) {
+          gsap.to(copyRef.current, {
+            y: 48,
+            opacity: 0.55,
+            ease: "none",
+            scrollTrigger: {
+              trigger: rootRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.6,
+            },
+          });
+        }
+      };
+
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(setup, { timeout: 2500 });
+      } else {
+        timeoutId = globalThis.setTimeout(setup, 1);
       }
 
-      if (copyRef.current) {
-        gsap.to(copyRef.current, {
-          y: 48,
-          opacity: 0.55,
-          ease: "none",
-          scrollTrigger: {
-            trigger: rootRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 0.6,
-          },
-        });
-      }
+      return () => {
+        if (idleId && "cancelIdleCallback" in window) {
+          window.cancelIdleCallback(idleId);
+        }
+        if (timeoutId) globalThis.clearTimeout(timeoutId);
+      };
     },
     { dependencies: [reduce] },
   );
@@ -189,28 +211,23 @@ export function CinematicHero({
         <p className="text-[11px] uppercase tracking-[0.28em] text-foreground/80">
           {dictionary.hero.eyebrow}
         </p>
-        <SplitHeadline
-          text={title}
-          className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight text-balance md:text-7xl lg:text-8xl"
-        />
+        <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight text-balance md:text-7xl lg:text-8xl">
+          {title}
+        </h1>
         <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80 md:text-lg">
           {subtitle}
         </p>
         <div className="mt-10 flex flex-wrap gap-4">
-          <Magnetic>
-            <Button asChild size="xl">
-              <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
-                {dictionary.hero.ctaPrimary}
-              </Link>
-            </Button>
-          </Magnetic>
-          <Magnetic strength={0.28}>
-            <Button asChild variant="outline" size="xl">
-              <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
-                {dictionary.hero.ctaSecondary}
-              </Link>
-            </Button>
-          </Magnetic>
+          <Button asChild size="xl">
+            <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
+              {dictionary.hero.ctaPrimary}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="xl">
+            <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
+              {dictionary.hero.ctaSecondary}
+            </Link>
+          </Button>
         </div>
       </div>
 

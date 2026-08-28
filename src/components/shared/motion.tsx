@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /**
  * Scroll-reveal that never leaves content stuck invisible.
@@ -20,12 +23,11 @@ export function FadeIn({
   delay?: number;
   y?: number;
 }) {
-  const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || reduce) return;
+    if (!el || prefersReducedMotion()) return;
 
     const rect = el.getBoundingClientRect();
     const belowFold = rect.top > window.innerHeight * 0.9;
@@ -52,7 +54,7 @@ export function FadeIn({
       el.style.transform = "";
       el.style.transition = "";
     };
-  }, [delay, reduce, y]);
+  }, [delay, y]);
 
   return (
     <div ref={ref} className={cn(className)}>
@@ -70,12 +72,11 @@ export function Stagger({
   className?: string;
   delay?: number;
 }) {
-  const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const root = ref.current;
-    if (!root || reduce) return;
+    if (!root || prefersReducedMotion()) return;
 
     const items = Array.from(
       root.querySelectorAll<HTMLElement>("[data-stagger-item]"),
@@ -115,7 +116,7 @@ export function Stagger({
         item.style.transition = "";
       });
     };
-  }, [delay, reduce]);
+  }, [delay]);
 
   return (
     <div ref={ref} className={className}>

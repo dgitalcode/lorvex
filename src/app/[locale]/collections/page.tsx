@@ -7,6 +7,8 @@ import { localePageMetadata } from "@/lib/page-metadata";
 import { storefrontCopy } from "@/content/storefront-copy";
 import { prisma } from "@/lib/prisma";
 
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
 }: {

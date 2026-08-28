@@ -8,7 +8,7 @@ import {
   getAiRecommendations,
   getCollectionsForProducts,
   getProductBySlug,
-  getRecentPurchaseForPopup,
+  getCachedRecentPurchase,
 } from "@/server/repositories/catalog";
 import { localePageMetadata } from "@/lib/page-metadata";
 import { getStorefrontFaq, storefrontCopy } from "@/content/storefront-copy";
@@ -19,6 +19,24 @@ import {
 } from "@/lib/json-ld";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
+
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    const products = await prisma.product.findMany({
+      where: { status: "ACTIVE" },
+      select: { slug: true },
+      take: 80,
+    });
+    return ["fr", "en", "ar"].flatMap((locale) =>
+      products.map((product) => ({ locale, slug: product.slug })),
+    );
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
@@ -61,16 +79,12 @@ export default async function ProductPage({ params }: Props) {
     .map((rel) => toCard(rel.related));
   const relationIds = product.relatedFrom.map((rel) => rel.relatedId);
 
-  const [aiRecommendations, recentPurchase] = await Promise.all([
+  const [aiRecommendations, recentPurchase, collections] = await Promise.all([
     getAiRecommendations(product, relationIds, 4),
-    getRecentPurchaseForPopup(),
+    getCachedRecentPurchase(),
+    getCollectionsForProducts(relationIds, product.collectionId),
   ]);
   const faqRows = getStorefrontFaq(localeParam);
-
-  const collections = await getCollectionsForProducts(
-    [...relationIds, ...aiRecommendations.map((p) => p.id)],
-    product.collectionId,
-  );
 
   const data: PdpProduct = {
     id: product.id, name: product.name, slug: product.slug, sku: product.sku,

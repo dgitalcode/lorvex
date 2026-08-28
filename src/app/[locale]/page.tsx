@@ -29,6 +29,12 @@ import {
   getCachedHomepageSections,
 } from "@/server/repositories/catalog";
 
+export const revalidate = 60;
+
+export function generateStaticParams() {
+  return [{ locale: "fr" }, { locale: "en" }, { locale: "ar" }];
+}
+
 export async function generateMetadata({
   params,
 }: {

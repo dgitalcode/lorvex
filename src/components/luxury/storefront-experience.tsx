@@ -1,15 +1,19 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { GsapProvider } from "@/components/luxury/gsap-provider";
 import { PageTransition } from "@/components/luxury/page-transition";
-import { SearchOverlay } from "@/components/luxury/search-overlay";
 import type { Locale } from "@/config/site";
 import type { Dictionary } from "@/i18n/dictionaries";
 
 const LuxuryCursor = dynamic(
   () =>
     import("@/components/luxury/luxury-cursor").then((mod) => mod.LuxuryCursor),
+  { ssr: false },
+);
+
+const SearchOverlay = dynamic(
+  () =>
+    import("@/components/luxury/search-overlay").then((mod) => mod.SearchOverlay),
   { ssr: false },
 );
 
@@ -23,11 +27,11 @@ export function StorefrontExperience({
   children: React.ReactNode;
 }) {
   return (
-    <GsapProvider>
+    <>
       <LuxuryCursor />
       <SearchOverlay locale={locale} dictionary={dictionary} />
       {children}
-    </GsapProvider>
+    </>
   );
 }
 
