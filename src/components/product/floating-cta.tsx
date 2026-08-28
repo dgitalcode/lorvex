@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/format";
+import { resolveAddToCartIntent } from "@/lib/add-to-cart-intent";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { getPdpStrings } from "@/components/product/strings";
@@ -42,7 +43,8 @@ export function FloatingPurchaseBar({
   const price = selected.price ?? product.price;
 
   function addToCart() {
-    if (selected.stock < 1 || added) return;
+    const intent = resolveAddToCartIntent(selected.stock, added ? "added" : "idle");
+    if (!intent.add) return;
     addItem({
       productId: product.id,
       variantId: selected.id,
@@ -54,6 +56,7 @@ export function FloatingPurchaseBar({
       currency: product.currency,
       stock: selected.stock,
     });
+    if (!intent.animate) return;
     setAdded(true);
     toast.success(t.added);
     window.setTimeout(() => setAdded(false), 1600);

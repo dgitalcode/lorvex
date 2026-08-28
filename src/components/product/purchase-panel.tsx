@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/luxury/magnetic";
 import { formatPrice } from "@/lib/format";
+import { resolveAddToCartIntent } from "@/lib/add-to-cart-intent";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { useCompareStore, useWishlistStore } from "@/stores/commerce-stores";
@@ -144,8 +145,8 @@ export function PurchasePanel({
   }
 
   function addToCart() {
-    if (selected.stock < 1 || cartState !== "idle") return;
-    setCartState("adding");
+    const intent = resolveAddToCartIntent(selected.stock, cartState);
+    if (!intent.add) return;
     addItem({
       productId: product.id,
       variantId: selected.id,
@@ -157,6 +158,8 @@ export function PurchasePanel({
       currency: product.currency,
       stock: selected.stock,
     });
+    if (!intent.animate) return;
+    setCartState("adding");
     window.setTimeout(() => {
       setCartState("added");
       toast.success(t.added);

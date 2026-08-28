@@ -3,6 +3,8 @@ import type { Locale } from "@/config/site";
 const authStrings = {
   fr: {
     signIn: "Connexion",
+    signInEyebrow: "Espace client privé",
+    signInWelcome: "Bienvenue chez LORVEX",
     createAccount: "Créer un compte",
     email: "E-mail",
     password: "Mot de passe",
@@ -66,6 +68,8 @@ const authStrings = {
   },
   en: {
     signIn: "Sign in",
+    signInEyebrow: "Private client area",
+    signInWelcome: "Welcome to LORVEX",
     createAccount: "Create account",
     email: "Email",
     password: "Password",
@@ -127,6 +131,8 @@ const authStrings = {
   },
   ar: {
     signIn: "تسجيل الدخول",
+    signInEyebrow: "منطقة العميل الخاصة",
+    signInWelcome: "مرحباً بك في LORVEX",
     createAccount: "إنشاء حساب",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
