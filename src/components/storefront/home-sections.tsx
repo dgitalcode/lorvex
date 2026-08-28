@@ -58,7 +58,6 @@ export function HeroSection({
             fill
             priority
             fetchPriority="high"
-            decoding="sync"
             quality={85}
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
@@ -75,7 +74,7 @@ export function HeroSection({
         <p className="text-[11px] uppercase tracking-[0.28em] text-foreground/80">
           {dictionary.hero.eyebrow}
         </p>
-        <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight text-balance md:text-7xl lg:text-8xl">
+        <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
           {dictionary.hero.title}
         </h1>
         <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80 md:text-lg">

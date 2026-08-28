@@ -114,7 +114,6 @@ export function ProductGallery({
                   fill
                   priority
                   fetchPriority="high"
-                  decoding="sync"
                   quality={85}
                   sizes="(max-width: 1024px) 100vw, 58vw"
                   className="object-cover"
