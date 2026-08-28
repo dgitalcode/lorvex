@@ -7,6 +7,8 @@ import { storefrontCopy } from "@/content/storefront-copy";
 import { searchProducts, getCachedFilterFacets } from "@/server/repositories/catalog";
 import { ShopClient } from "@/components/storefront/shop-client";
 
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
   searchParams,

@@ -3,12 +3,39 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/shared/motion";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
-import { CinematicHero, type CinematicHeroContent } from "@/components/luxury/cinematic-hero";
+import type { CinematicHeroContent } from "@/components/luxury/cinematic-hero";
+import { HeroVideo } from "@/components/storefront/hero-video";
 import { StorefrontImage } from "@/components/shared/storefront-image";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/config/site";
 import { siteConfig } from "@/config/site";
 import { storefrontCopy } from "@/content/storefront-copy";
+
+const DEFAULT_HERO = "/images/lorvex/hero.jpg";
+
+function resolveHeroMedia(content?: CinematicHeroContent) {
+  const mediaType =
+    content?.mediaType === "image" ||
+    content?.mediaType === "video" ||
+    content?.mediaType === "none"
+      ? content.mediaType
+      : content?.videoUrl?.trim()
+        ? "video"
+        : content?.imageUrl?.trim()
+          ? "image"
+          : "none";
+  const posterUrl =
+    content?.posterUrl?.trim() ||
+    content?.imageUrl?.trim() ||
+    DEFAULT_HERO;
+  const imageUrl =
+    mediaType === "none"
+      ? DEFAULT_HERO
+      : content?.imageUrl?.trim() || posterUrl || DEFAULT_HERO;
+  const videoUrl =
+    mediaType === "video" ? content?.videoUrl?.trim() || "" : "";
+  return { imageUrl, posterUrl, videoUrl };
+}
 
 export function HeroSection({
   locale,
@@ -19,8 +46,60 @@ export function HeroSection({
   dictionary: Dictionary;
   content?: CinematicHeroContent;
 }) {
+  const { imageUrl, posterUrl, videoUrl } = resolveHeroMedia(content);
+  const copy = storefrontCopy(locale);
   return (
-    <CinematicHero locale={locale} dictionary={dictionary} content={content} />
+    <section className="relative flex min-h-[100svh] items-end overflow-hidden bg-[#12110f]">
+      <div className="absolute inset-0">
+        <div className="relative h-full w-full scale-105">
+          <StorefrontImage
+            src={imageUrl}
+            alt=""
+            fill
+            priority
+            fetchPriority="high"
+            quality={85}
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
+            aria-hidden
+          />
+          {videoUrl ? (
+            <HeroVideo videoUrl={videoUrl} posterUrl={posterUrl} />
+          ) : null}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/35 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgb(12_11_10/0.28)_100%)]" />
+      </div>
+      <div className="luxury-container relative z-10 pb-20 pt-40 md:pb-28">
+        <p className="text-[11px] uppercase tracking-[0.28em] text-foreground/80">
+          {dictionary.hero.eyebrow}
+        </p>
+        <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight text-balance md:text-7xl lg:text-8xl">
+          {dictionary.hero.title}
+        </h1>
+        <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80 md:text-lg">
+          {dictionary.hero.subtitle}
+        </p>
+        <div className="mt-10 flex flex-wrap gap-4">
+          <Button asChild size="xl">
+            <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
+              {dictionary.hero.ctaPrimary}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="xl">
+            <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
+              {dictionary.hero.ctaSecondary}
+            </Link>
+          </Button>
+        </div>
+      </div>
+      <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
+        <span className="text-[10px] uppercase tracking-[0.28em] text-foreground/55">
+          {copy.scroll}
+        </span>
+        <span className="h-10 w-px origin-top animate-pulse bg-foreground/40" />
+      </div>
+    </section>
   );
 }
 

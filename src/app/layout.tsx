@@ -17,7 +17,7 @@ const display = Cormorant_Garamond({
   weight: ["400", "700"],
   variable: "--font-display",
   display: "swap",
-  preload: false,
+  preload: true,
 });
 
 const sans = Outfit({

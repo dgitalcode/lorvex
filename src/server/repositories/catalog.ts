@@ -197,7 +197,7 @@ export type ShopFilters = {
   pageSize?: number;
 };
 
-export async function searchProducts(filters: ShopFilters) {
+async function searchProductsUncached(filters: ShopFilters) {
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 12;
   const where: Prisma.ProductWhereInput = {
@@ -306,6 +306,12 @@ export async function searchProducts(filters: ShopFilters) {
     products: products.map(toCard),
   };
 }
+
+export const searchProducts = unstable_cache(
+  searchProductsUncached,
+  ["storefront-search-products"],
+  { revalidate: 60 },
+);
 
 export async function getProductBySlug(slug: string) {
   return prisma.product.findFirst({

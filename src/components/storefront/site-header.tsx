@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Menu,
   Search,
@@ -111,7 +110,6 @@ export function SiteHeader({
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated" && Boolean(session?.user);
-  const reduce = useReducedMotion();
   const chromeRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -394,31 +392,19 @@ export function SiteHeader({
                 className="relative flex h-10 w-10 items-center justify-center"
               >
                 <ShoppingBag className="h-4 w-4" />
-                <AnimatePresence>
-                  {cartCount > 0 && (
-                    <motion.span
-                      initial={reduce ? false : { scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center bg-accent px-1 text-[10px] text-accent-foreground"
-                    >
-                      {cartCount}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                {cartCount > 0 ? (
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center bg-accent px-1 text-[10px] text-accent-foreground">
+                    {cartCount}
+                  </span>
+                ) : null}
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <AnimatePresence>
-        {megaOpen && (
-          <motion.div
-            initial={reduce ? false : { opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      {megaOpen ? (
+          <div
             className={cn(
               "overflow-hidden border-t border-border/40 bg-background/80 backdrop-blur-xl",
               solidNav && "shadow-[var(--shadow-soft)]",
@@ -426,17 +412,8 @@ export function SiteHeader({
             onMouseEnter={() => setMegaOpen(true)}
           >
             <div className="luxury-container relative grid gap-6 py-10 md:grid-cols-4">
-              {megaItems(locale).map((item, index) => (
-                <motion.div
-                  key={item.href}
-                  initial={reduce ? false : { opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: 0.05 * index,
-                    duration: 0.45,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                >
+              {megaItems(locale).map((item) => (
+                <div key={item.href}>
                   <Link
                     href={item.href}
                     className="group block"
@@ -453,7 +430,7 @@ export function SiteHeader({
                       Découvrir la collection
                     </p>
                   </Link>
-                </motion.div>
+                </div>
               ))}
               <button
                 type="button"
@@ -464,9 +441,8 @@ export function SiteHeader({
                 <X className="h-4 w-4" />
               </button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        ) : null}
     </header>
   );
 }
