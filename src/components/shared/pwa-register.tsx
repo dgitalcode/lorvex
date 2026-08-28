@@ -12,7 +12,23 @@ export function PwaRegister() {
         // Service worker optional in unsupported browsers.
       }
     };
-    void register();
+    if ("requestIdleCallback" in window) {
+      const idle = window as Window & {
+        requestIdleCallback: (
+          cb: () => void,
+          opts?: { timeout: number },
+        ) => number;
+        cancelIdleCallback: (id: number) => void;
+      };
+      const id = idle.requestIdleCallback(() => {
+        void register();
+      }, { timeout: 4000 });
+      return () => idle.cancelIdleCallback(id);
+    }
+    const timer = globalThis.setTimeout(() => {
+      void register();
+    }, 1500);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   return null;

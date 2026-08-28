@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
 import { FadeIn } from "@/components/shared/motion";
 import type { Locale } from "@/config/site";
@@ -152,7 +152,7 @@ export function PersonalizedHomeBlocks({ locale }: { locale: Locale }) {
                   >
                     <span className="relative block aspect-[4/5] overflow-hidden bg-secondary">
                       {collection.coverUrl && (
-                        <Image
+                        <StorefrontImage
                           src={collection.coverUrl}
                           alt={collection.name}
                           fill

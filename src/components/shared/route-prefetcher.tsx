@@ -20,8 +20,6 @@ export function RoutePrefetcher({
       [
         `/${locale}/shop`,
         `/${locale}/collections`,
-        `/${locale}/cart`,
-        `/${locale}/search`,
       ];
 
     const run = () => {

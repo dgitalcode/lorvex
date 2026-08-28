@@ -12,6 +12,6 @@ type LuxuryUiState = {
 export const useLuxuryUiStore = create<LuxuryUiState>((set) => ({
   searchOpen: false,
   setSearchOpen: (open) => set({ searchOpen: open }),
-  loadingComplete: false,
+  loadingComplete: true,
   setLoadingComplete: (complete) => set({ loadingComplete: complete }),
 }));

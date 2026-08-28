@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import { useReducedMotion } from "framer-motion";
 import { gsap, registerGsap } from "@/components/luxury/gsap-provider";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import { cn } from "@/lib/utils";
 
 export function ImageReveal({
@@ -17,9 +17,9 @@ export function ImageReveal({
 }: {
   src: string;
   alt: string;
-  className?: string;
-  fill?: boolean;
   sizes?: string;
+  fill?: boolean;
+  className?: string;
   priority?: boolean;
 }) {
   const reduce = useReducedMotion();
@@ -31,33 +31,16 @@ export function ImageReveal({
       registerGsap();
       if (reduce || !frameRef.current || !imageRef.current) return;
 
-      // Keep image visible by default; animate only when triggered.
-      const tl = gsap.timeline({
+      gsap.from(imageRef.current, {
+        scale: 1.06,
+        duration: 1.05,
+        ease: "power3.out",
         scrollTrigger: {
           trigger: frameRef.current,
           start: "top 90%",
           once: true,
         },
       });
-
-      tl.from(
-        frameRef.current,
-        {
-          clipPath: "inset(100% 0 0 0)",
-          duration: 1.05,
-          ease: "power3.inOut",
-          immediateRender: false,
-        },
-      ).from(
-        imageRef.current,
-        {
-          scale: 1.12,
-          duration: 1.15,
-          ease: "power3.out",
-          immediateRender: false,
-        },
-        "-=0.9",
-      );
     },
     { dependencies: [src, reduce] },
   );
@@ -65,7 +48,7 @@ export function ImageReveal({
   return (
     <div ref={frameRef} className={cn("relative overflow-hidden", className)}>
       <div ref={imageRef} className="absolute inset-0 will-change-transform">
-        <Image
+        <StorefrontImage
           src={src}
           alt={alt}
           fill={fill}

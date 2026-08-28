@@ -4,7 +4,7 @@ import { isLocale, getDictionary } from "@/i18n/get-dictionary";
 import { localePageMetadata } from "@/lib/page-metadata";
 import { shopQueryIsIndexable } from "@/lib/seo-indexability";
 import { storefrontCopy } from "@/content/storefront-copy";
-import { searchProducts, getFilterFacets } from "@/server/repositories/catalog";
+import { searchProducts, getCachedFilterFacets } from "@/server/repositories/catalog";
 import { ShopClient } from "@/components/storefront/shop-client";
 
 export async function generateMetadata({
@@ -50,41 +50,42 @@ export default async function ShopPage({
   };
 
   const page = Number(get("page") ?? "1") || 1;
-  const result = await searchProducts({
-    brand: get("brand"),
-    collection: get("collection"),
-    gender: get("gender"),
-    movement: get("movement"),
-    color: get("color"),
-    caseMaterial: get("caseMaterial"),
-    strapMaterial: get("strapMaterial"),
-    dialColor: get("dialColor"),
-    q: get("q"),
-    new: get("new") === "1",
-    limited: get("limited") === "1",
-    availability: get("availability") === "in_stock" ? "in_stock" : "all",
-    minPrice: get("minPrice") ? Number(get("minPrice")) : undefined,
-    maxPrice: get("maxPrice") ? Number(get("maxPrice")) : undefined,
-    waterResistance: get("waterResistance")
-      ? Number(get("waterResistance"))
-      : undefined,
-    sort: (get("sort") as "newest" | "price_asc" | "price_desc" | "name") ?? "newest",
-    page,
-    pageSize: 12,
-  }).catch(() => ({
-    total: 0,
-    page: 1,
-    pageSize: 12,
-    pageCount: 1,
-    products: [],
-  }));
-
-  const facets = await getFilterFacets().catch(() => ({
-    brands: [],
-    collections: [],
-    minPrice: 0,
-    maxPrice: 0,
-  }));
+  const [result, facets] = await Promise.all([
+    searchProducts({
+      brand: get("brand"),
+      collection: get("collection"),
+      gender: get("gender"),
+      movement: get("movement"),
+      color: get("color"),
+      caseMaterial: get("caseMaterial"),
+      strapMaterial: get("strapMaterial"),
+      dialColor: get("dialColor"),
+      q: get("q"),
+      new: get("new") === "1",
+      limited: get("limited") === "1",
+      availability: get("availability") === "in_stock" ? "in_stock" : "all",
+      minPrice: get("minPrice") ? Number(get("minPrice")) : undefined,
+      maxPrice: get("maxPrice") ? Number(get("maxPrice")) : undefined,
+      waterResistance: get("waterResistance")
+        ? Number(get("waterResistance"))
+        : undefined,
+      sort: (get("sort") as "newest" | "price_asc" | "price_desc" | "name") ?? "newest",
+      page,
+      pageSize: 12,
+    }).catch(() => ({
+      total: 0,
+      page: 1,
+      pageSize: 12,
+      pageCount: 1,
+      products: [],
+    })),
+    getCachedFilterFacets().catch(() => ({
+      brands: [],
+      collections: [],
+      minPrice: 0,
+      maxPrice: 0,
+    })),
+  ]);
 
   return (
     <div className="page-pad">

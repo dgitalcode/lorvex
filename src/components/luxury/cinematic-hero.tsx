@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { useReducedMotion } from "framer-motion";
@@ -146,13 +146,15 @@ export function CinematicHero({
     >
       <div ref={mediaRef} className="absolute inset-0 will-change-transform">
         <div className="relative h-full w-full scale-105">
-          <Image
+          <StorefrontImage
             src={imageUrl}
             alt=""
             fill
             priority
+            fetchPriority="high"
+            quality={85}
             className="object-cover"
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
             aria-hidden
           />
           {showVideo ? (

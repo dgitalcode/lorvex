@@ -46,29 +46,46 @@ export function AnalyticsTracker() {
     const referrer =
       previousPath.current ??
       (typeof document !== "undefined" ? document.referrer || null : null);
-    track({ name: "page_view", path: pathname, referrer });
 
-    const productMatch = pathname.match(/\/product\/([^/]+)/);
-    if (productMatch?.[1]) {
-      track({
-        name: "product_view",
-        path: pathname,
-        entityType: "product",
-        entityId: productMatch[1],
-      });
-    }
+    const send = () => {
+      track({ name: "page_view", path: pathname, referrer });
 
-    if (pathname.includes("/checkout")) {
-      track({ name: "checkout_view", path: pathname });
-    }
-    if (pathname.includes("/cart")) {
-      track({ name: "cart_view", path: pathname });
-    }
-    if (pathname.includes("/search")) {
-      track({ name: "search_view", path: pathname });
-    }
+      const productMatch = pathname.match(/\/product\/([^/]+)/);
+      if (productMatch?.[1]) {
+        track({
+          name: "product_view",
+          path: pathname,
+          entityType: "product",
+          entityId: productMatch[1],
+        });
+      }
 
-    previousPath.current = pathname;
+      if (pathname.includes("/checkout")) {
+        track({ name: "checkout_view", path: pathname });
+      }
+      if (pathname.includes("/cart")) {
+        track({ name: "cart_view", path: pathname });
+      }
+      if (pathname.includes("/search")) {
+        track({ name: "search_view", path: pathname });
+      }
+
+      previousPath.current = pathname;
+    };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const idle = window as Window & {
+        requestIdleCallback: (
+          cb: () => void,
+          opts?: { timeout: number },
+        ) => number;
+        cancelIdleCallback: (id: number) => void;
+      };
+      const id = idle.requestIdleCallback(send, { timeout: 2000 });
+      return () => idle.cancelIdleCallback(id);
+    }
+    const timer = globalThis.setTimeout(send, 400);
+    return () => globalThis.clearTimeout(timer);
   }, [pathname]);
 
   return null;

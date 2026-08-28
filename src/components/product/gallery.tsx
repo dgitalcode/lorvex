@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -112,16 +112,18 @@ export function ProductGallery({
               <motion.div
                 key={active?.url}
                 className="absolute inset-0"
-                initial={reduce ? false : { opacity: 0, scale: 1.015 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Image
+                <StorefrontImage
                   src={active?.url ?? ""}
                   alt={active?.alt ?? name}
                   fill
                   priority
+                  fetchPriority="high"
+                  quality={85}
                   sizes="(max-width: 1024px) 100vw, 58vw"
                   className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
                   style={{
@@ -254,11 +256,12 @@ export function ProductGallery({
                   : "border-transparent opacity-75 hover:opacity-100",
               )}
             >
-              <Image
+              <StorefrontImage
                 src={image.url}
                 alt={image.alt}
                 fill
                 sizes="120px"
+                quality={70}
                 className="object-cover"
               />
             </button>
@@ -319,12 +322,12 @@ export function ProductGallery({
                 );
               }}
             >
-              <Image
+              <StorefrontImage
                 src={active?.url ?? ""}
                 alt={active?.alt ?? name}
                 fill
                 sizes="96vw"
-                quality={95}
+                quality={90}
                 className="object-contain"
               />
             </div>

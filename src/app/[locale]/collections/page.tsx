@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -56,11 +56,12 @@ export default async function CollectionsPage({
             className="group relative aspect-[16/10] overflow-hidden bg-secondary"
           >
             {collection.coverUrl ? (
-              <Image
+              <StorefrontImage
                 src={collection.coverUrl}
                 alt={collection.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
+                quality={80}
                 className="object-cover transition duration-700 group-hover:scale-105"
               />
             ) : null}

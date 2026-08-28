@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
@@ -173,7 +173,7 @@ export function ProductExperience({
                   >
                     <span className="relative block aspect-[4/3] overflow-hidden bg-secondary">
                       {collection.coverUrl && (
-                        <Image
+                        <StorefrontImage
                           src={collection.coverUrl}
                           alt={collection.name}
                           fill

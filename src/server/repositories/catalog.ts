@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { ProductCardData } from "@/components/storefront/product-card";
 import { Prisma } from "@prisma/client";
@@ -119,12 +120,61 @@ export async function getTestimonials() {
   });
 }
 
+export const getCachedCollections = unstable_cache(
+  getCollections,
+  ["storefront-collections-featured"],
+  { revalidate: 60 },
+);
+
+export const getCachedHomepageSections = unstable_cache(
+  getHomepageSections,
+  ["storefront-homepage-sections"],
+  { revalidate: 60 },
+);
+
+export const getCachedTestimonials = unstable_cache(
+  getTestimonials,
+  ["storefront-testimonials"],
+  { revalidate: 120 },
+);
+
 export async function getAnnouncement() {
   return prisma.announcementBar.findFirst({
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },
   });
 }
+
+/** Short-lived cache: announcement is not purchasable inventory. */
+export const getCachedAnnouncement = unstable_cache(
+  getAnnouncement,
+  ["storefront-announcement"],
+  { revalidate: 120 },
+);
+
+export const getCachedFeaturedProducts = unstable_cache(
+  () => getFeaturedProducts(8),
+  ["storefront-featured-8"],
+  { revalidate: 60 },
+);
+
+export const getCachedNewArrivals = unstable_cache(
+  () => getNewArrivals(8),
+  ["storefront-arrivals-8"],
+  { revalidate: 60 },
+);
+
+export const getCachedBestSellers = unstable_cache(
+  () => getBestSellers(8),
+  ["storefront-bestsellers-8"],
+  { revalidate: 60 },
+);
+
+export const getCachedLimitedEditions = unstable_cache(
+  () => getLimitedEditions(4),
+  ["storefront-limited-4"],
+  { revalidate: 60 },
+);
 
 export type ShopFilters = {
   brand?: string;
@@ -417,3 +467,9 @@ export async function getFilterFacets() {
     maxPrice: Number(price._max.basePrice ?? 0),
   };
 }
+
+export const getCachedFilterFacets = unstable_cache(
+  getFilterFacets,
+  ["storefront-filter-facets"],
+  { revalidate: 60 },
+);

@@ -1,8 +1,9 @@
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { isLocale, getDictionary, getDirection } from "@/i18n/get-dictionary";
 import { SiteHeader } from "@/components/storefront/site-header";
 import { SiteFooter } from "@/components/storefront/site-footer";
-import { getAnnouncement } from "@/server/repositories/catalog";
+import { getCachedAnnouncement } from "@/server/repositories/catalog";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
 import {
@@ -11,8 +12,6 @@ import {
 } from "@/components/luxury/storefront-experience";
 import { AnalyticsTracker } from "@/components/shared/analytics-tracker";
 import { RoutePrefetcher } from "@/components/shared/route-prefetcher";
-import { auth } from "@/lib/auth";
-import type { CSSProperties } from "react";
 
 export default async function LocaleLayout({
   children,
@@ -26,10 +25,9 @@ export default async function LocaleLayout({
   const locale = localeParam;
   const dictionary = getDictionary(locale);
   const direction = getDirection(locale);
-  const [announcement, settings, session] = await Promise.all([
-    getAnnouncement().catch(() => null),
+  const [announcement, settings] = await Promise.all([
+    getCachedAnnouncement().catch(() => null),
     getStorefrontSettings(),
-    auth(),
   ]);
   const announcementMessage = announcement?.message;
   const announcementHeight = announcementMessage ? "2.25rem" : "0rem";
@@ -63,7 +61,6 @@ export default async function LocaleLayout({
           dictionary={dictionary}
           announcement={announcementMessage}
           settings={settings}
-          isAuthenticated={Boolean(session?.user?.id)}
         />
         <main id="main-content" className="flex-1">
           <StorefrontPageTransition>{children}</StorefrontPageTransition>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Heart, GitCompareArrows } from "lucide-react";
@@ -10,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useWishlistStore, useCompareStore } from "@/stores/commerce-stores";
 import type { Locale } from "@/config/site";
 import { storefrontCopy } from "@/content/storefront-copy";
+import { StorefrontImage } from "@/components/shared/storefront-image";
 
 export type ProductCardData = {
   id: string;
@@ -29,10 +29,12 @@ export function ProductCard({
   product,
   locale,
   className,
+  priority = false,
 }: {
   product: ProductCardData;
   locale: Locale;
   className?: string;
+  priority?: boolean;
 }) {
   // Persist rehydrates after paint — gate so SSR and hydration markup match.
   const [mounted, setMounted] = useState(false);
@@ -58,11 +60,13 @@ export function ProductCard({
           href={`/${locale}/product/${product.slug}`}
           className="absolute inset-0 block"
         >
-          <Image
+          <StorefrontImage
             src={product.imageUrl}
             alt={storefrontCopy(locale).watchAlt(product.name)}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            quality={80}
+            priority={priority}
             className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
           />
         </Link>

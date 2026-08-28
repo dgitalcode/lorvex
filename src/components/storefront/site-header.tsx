@@ -23,6 +23,7 @@ import { useCartStore } from "@/stores/cart-store";
 import { useLuxuryUiStore } from "@/stores/luxury-ui-store";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
+import { useSession } from "next-auth/react";
 import { Magnetic } from "@/components/luxury/magnetic";
 import {
   Sheet,
@@ -75,7 +76,6 @@ function useHeaderChromeHeight(
         return;
       }
       document.documentElement.style.setProperty("--header-height", next);
-      window.dispatchEvent(new Event("resize"));
     };
 
     publish();
@@ -102,15 +102,15 @@ export function SiteHeader({
   dictionary,
   announcement,
   settings,
-  isAuthenticated,
 }: {
   locale: Locale;
   dictionary: Dictionary;
   announcement?: string;
   settings: StorefrontSettings;
-  isAuthenticated: boolean;
 }) {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated" && Boolean(session?.user);
   const reduce = useReducedMotion();
   const chromeRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);

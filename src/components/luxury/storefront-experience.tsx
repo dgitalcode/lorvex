@@ -1,12 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { GsapProvider } from "@/components/luxury/gsap-provider";
-import { LoadingScreen } from "@/components/luxury/loading-screen";
-import { LuxuryCursor } from "@/components/luxury/luxury-cursor";
 import { PageTransition } from "@/components/luxury/page-transition";
 import { SearchOverlay } from "@/components/luxury/search-overlay";
 import type { Locale } from "@/config/site";
 import type { Dictionary } from "@/i18n/dictionaries";
+
+const LuxuryCursor = dynamic(
+  () =>
+    import("@/components/luxury/luxury-cursor").then((mod) => mod.LuxuryCursor),
+  { ssr: false },
+);
 
 export function StorefrontExperience({
   locale,
@@ -19,7 +24,6 @@ export function StorefrontExperience({
 }) {
   return (
     <GsapProvider>
-      <LoadingScreen />
       <LuxuryCursor />
       <SearchOverlay locale={locale} dictionary={dictionary} />
       {children}

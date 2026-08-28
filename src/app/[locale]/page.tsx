@@ -20,13 +20,13 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { buildSiteGraphJsonLd } from "@/lib/json-ld";
 import { getStorefrontSettings } from "@/server/repositories/settings";
 import {
-  getFeaturedProducts,
-  getNewArrivals,
-  getBestSellers,
-  getLimitedEditions,
-  getCollections,
-  getTestimonials,
-  getHomepageSections,
+  getCachedFeaturedProducts,
+  getCachedNewArrivals,
+  getCachedBestSellers,
+  getCachedLimitedEditions,
+  getCachedCollections,
+  getCachedTestimonials,
+  getCachedHomepageSections,
 } from "@/server/repositories/catalog";
 
 export async function generateMetadata({
@@ -66,13 +66,13 @@ export default async function HomePage({
     sections,
     settings,
   ] = await Promise.all([
-    getFeaturedProducts(8).catch(() => []),
-    getNewArrivals(8).catch(() => []),
-    getBestSellers(8).catch(() => []),
-    getLimitedEditions(4).catch(() => []),
-    getCollections().catch(() => []),
-    getTestimonials().catch(() => []),
-    getHomepageSections().catch(() => []),
+    getCachedFeaturedProducts().catch(() => []),
+    getCachedNewArrivals().catch(() => []),
+    getCachedBestSellers().catch(() => []),
+    getCachedLimitedEditions().catch(() => []),
+    getCachedCollections().catch(() => []),
+    getCachedTestimonials().catch(() => []),
+    getCachedHomepageSections().catch(() => []),
     getStorefrontSettings(),
   ]);
 
