@@ -1,13 +1,12 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
 import { CheckCircle2, Download } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
+import { composeDocumentTitle } from "@/lib/document-title";
 import { isLocale } from "@/i18n/get-dictionary";
 import { auth } from "@/lib/auth";
-import { missingCatalogMetadata } from "@/lib/seo-indexability";
 import { getClientIp } from "@/server/services/security";
 import { findAuthorizedStorefrontOrder } from "@/server/services/order-access";
 
@@ -34,27 +33,6 @@ const resolveAuthorizedOrder = cache(
 
 function presentedAccessToken(k: string | string[] | undefined) {
   return Array.isArray(k) ? k[0] : k;
-}
-
-export async function generateMetadata({
-  params,
-  searchParams,
-}: OrderPageProps): Promise<Metadata> {
-  const { locale, number } = await params;
-  const sp = await searchParams;
-  const result = await resolveAuthorizedOrder(
-    locale,
-    number,
-    presentedAccessToken(sp.k),
-  );
-  // Avoid invoking the App Router not-found helper from metadata (can yield HTTP 200).
-  if (result.status !== "allow" || !result.order) {
-    return {
-      ...missingCatalogMetadata(),
-      title: "Page introuvable",
-    };
-  }
-  return { title: "Order confirmed", robots: { index: false, follow: false } };
 }
 
 function paymentCopy(
@@ -100,6 +78,8 @@ export default async function OrderPage({
 
   return (
     <div className="luxury-container pb-24 page-pad">
+      <title>{composeDocumentTitle("Order confirmed")}</title>
+      <meta name="robots" content="noindex, nofollow" />
       <div className="mx-auto max-w-3xl">
         <div className="animate-check-pop flex h-16 w-16 items-center justify-center border border-success/30 bg-success/10 text-success">
           <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} />

@@ -303,26 +303,13 @@ describe("F7 admin download origin and GET rejection", () => {
 });
 
 describe("F1 order page HTTP 404 metadata", () => {
-  it("does not export static confirmation metadata and still calls notFound in the page", async () => {
-    const { readFileSync } = await import("node:fs");
+  it("uses page-level notFound without a nested not-found shell or deny metadata", async () => {
+    const { existsSync, readFileSync } = await import("node:fs");
     const { join } = await import("node:path");
-    const page = readFileSync(
-      join(import.meta.dirname, "../app/[locale]/order/[number]/page.tsx"),
-      "utf8",
-    );
-    const notFoundUi = readFileSync(
-      join(import.meta.dirname, "../app/[locale]/order/[number]/not-found.tsx"),
-      "utf8",
-    );
-    assert.equal(page.includes("export const metadata ="), false);
-    assert.equal(page.includes("export async function generateMetadata"), true);
+    const dir = join(import.meta.dirname, "../app/[locale]/order/[number]");
+    const page = readFileSync(join(dir, "page.tsx"), "utf8");
+    assert.equal(existsSync(join(dir, "not-found.tsx")), false);
+    assert.equal(page.includes("export async function generateMetadata"), false);
     assert.equal(page.includes("notFound();"), true);
-    const metadataFn = page.slice(
-      page.indexOf("export async function generateMetadata"),
-      page.indexOf("function paymentCopy"),
-    );
-    assert.equal(metadataFn.includes("notFound();"), false);
-    assert.equal(page.includes("Page introuvable"), true);
-    assert.equal(notFoundUi.includes("@/app/not-found"), true);
   });
 });
