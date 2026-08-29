@@ -1,5 +1,27 @@
 import { createHash } from "node:crypto";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+
+export function ipFromRequest(request: Request) {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+export async function getClientIp() {
+  try {
+    const h = await headers();
+    return (
+      h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      h.get("x-real-ip") ||
+      "unknown"
+    );
+  } catch {
+    return "unknown";
+  }
+}
 
 const memoryBuckets = new Map<string, { count: number; resetAt: number }>();
 

@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { isLocale } from "@/i18n/get-dictionary";
-import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { getClientIp } from "@/server/services/security";
+import { findAuthorizedStorefrontOrder } from "@/server/services/order-access";
 
 export const metadata = { title: "Order confirmed", robots: { index: false } };
 
@@ -33,20 +35,24 @@ function paymentCopy(
 
 export default async function OrderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; number: string }>;
+  searchParams: Promise<{ k?: string | string[] }>;
 }) {
   const { locale, number } = await params;
   if (!isLocale(locale)) notFound();
-  const order = await prisma.order.findUnique({
-    where: { number },
-    include: {
-      items: true,
-      shippingAddress: true,
-      shippingMethod: true,
-    },
+  const sp = await searchParams;
+  const presentedToken = Array.isArray(sp.k) ? sp.k[0] : sp.k;
+  const session = await auth();
+  const result = await findAuthorizedStorefrontOrder({
+    number,
+    presentedToken,
+    session,
+    ip: await getClientIp(),
   });
-  if (!order) notFound();
+  if (result.status !== "allow" || !result.order) notFound();
+  const order = result.order;
 
   const downloadLabel =
     locale === "ar"
@@ -102,7 +108,13 @@ export default async function OrderPage({
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild size="lg">
-            <a href={`/api/orders/${order.number}/receipt`}>
+            <a
+              href={
+                presentedToken
+                  ? `/api/orders/${order.number}/receipt?k=${encodeURIComponent(presentedToken)}`
+                  : `/api/orders/${order.number}/receipt`
+              }
+            >
               <Download className="me-2 h-4 w-4" />
               {downloadLabel}
             </a>

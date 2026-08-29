@@ -102,11 +102,12 @@ export default async function AdminAnalyticsPage({
                 </Button>
               ))}
             </div>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/api/admin/analytics/export?range=${rangeDays}`}>
+            <form action="/api/admin/analytics/export" method="post">
+              <input type="hidden" name="range" value={String(rangeDays)} />
+              <Button size="sm" variant="outline" type="submit">
                 Export CSV
-              </Link>
-            </Button>
+              </Button>
+            </form>
           </>
         }
       />

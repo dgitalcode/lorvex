@@ -1,6 +1,9 @@
 import { toCsv, csvResponse } from "@/lib/export";
-import { assertPermission } from "@/server/auth/require-admin";
 import { getDashboardMetrics } from "@/server/repositories/admin/analytics";
+import {
+  authorizeAdminSensitivePost,
+  methodNotAllowedGet,
+} from "@/server/auth/admin-sensitive-post";
 
 function parseRange(value: string | null) {
   const parsed = Number(value);
@@ -8,15 +11,22 @@ function parseRange(value: string | null) {
   return 30;
 }
 
-export async function GET(request: Request) {
-  try {
-    await assertPermission("analytics.view");
-  } catch {
-    return new Response("Unauthorized", { status: 401 });
-  }
+export async function GET() {
+  return methodNotAllowedGet();
+}
+
+export async function POST(request: Request) {
+  const gate = await authorizeAdminSensitivePost(request, "analytics.view");
+  if (!gate.ok) return gate.response;
 
   const { searchParams } = new URL(request.url);
-  const rangeDays = parseRange(searchParams.get("range"));
+  let rangeRaw = searchParams.get("range");
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.includes("form")) {
+    const form = await request.formData();
+    rangeRaw = String(form.get("range") ?? rangeRaw ?? "");
+  }
+  const rangeDays = parseRange(rangeRaw);
   const metrics = await getDashboardMetrics(rangeDays);
 
   const csv = toCsv(

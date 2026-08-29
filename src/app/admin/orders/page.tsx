@@ -47,12 +47,16 @@ export default async function AdminOrdersPage({
         title="Orders"
         description="Manage fulfillment, tracking, refunds and returns."
         actions={
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/api/admin/orders/export">
+          <form action="/api/admin/orders/export" method="post">
+            {params.status ? (
+              <input type="hidden" name="status" value={params.status} />
+            ) : null}
+            {params.q ? <input type="hidden" name="q" value={params.q} /> : null}
+            <Button variant="outline" size="sm" type="submit">
               <Download className="mr-2 h-4 w-4" />
               Export CSV
-            </Link>
-          </Button>
+            </Button>
+          </form>
         }
       />
 

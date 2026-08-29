@@ -1,39 +1,29 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
 import { InvoiceDocument } from "@/components/admin/orders/invoice-document";
 import { getStorefrontSettings } from "@/server/repositories/settings";
+import { auth } from "@/lib/auth";
+import { ipFromRequest } from "@/server/services/security";
+import { findAuthorizedStorefrontOrder } from "@/server/services/order-access";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ number: string }> },
 ) {
   const { number } = await params;
-  const order = await prisma.order.findUnique({
-    where: { number },
-    include: {
-      items: true,
-      shippingAddress: true,
-      shippingMethod: true,
-    },
-  });
-  if (!order) notFound();
-
+  const token = new URL(request.url).searchParams.get("k");
   const session = await auth();
-  const isOwner =
-    session?.user?.id && order.userId && session.user.id === order.userId;
-  const isStaff =
-    session?.user?.role &&
-    ["SUPER_ADMIN", "ADMIN", "EDITOR", "SUPPORT", "ANALYST"].includes(
-      session.user.role,
-    );
-
-  // Guest confirmation pages are reachable by order number; allow the same
-  // for receipt download. Authenticated non-owners who are not staff are denied.
-  if (session?.user?.id && order.userId && !isOwner && !isStaff) {
-    return new Response("Forbidden", { status: 403 });
+  const result = await findAuthorizedStorefrontOrder({
+    number,
+    presentedToken: token,
+    session,
+    ip: ipFromRequest(request),
+  });
+  if (result.status === "rate_limited") {
+    return new Response("Too many requests", { status: 429 });
   }
+  if (result.status !== "allow" || !result.order) notFound();
+  const order = result.order;
 
   const settings = await getStorefrontSettings();
 

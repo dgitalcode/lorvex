@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
 import { checkRateLimit } from "@/server/services/security";
 import { verifyTwoFactorToken } from "@/server/services/two-factor";
+import { applyJwtRefresh, shouldRefreshJwt } from "@/lib/jwt-refresh";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -41,23 +42,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       if (!token.id) return token;
 
-      const lastCheck = typeof token.lastPwdCheck === "number" ? token.lastPwdCheck : 0;
-      // Re-validate password version periodically so resets invalidate JWTs.
-      if (Date.now() - lastCheck > 30_000) {
+      if (shouldRefreshJwt(token)) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { passwordChangedAt: true, status: true },
+            select: { passwordChangedAt: true, status: true, role: true },
           });
-          token.lastPwdCheck = Date.now();
-          if (!dbUser || dbUser.status !== "ACTIVE") {
-            return {};
-          }
-          const changed = dbUser.passwordChangedAt?.getTime() ?? 0;
-          const stamped = typeof token.pwdv === "number" ? token.pwdv : 0;
-          if (changed > stamped) {
-            return {};
-          }
+          const next = applyJwtRefresh(token, dbUser);
+          if (!("id" in next) || !next.id) return {};
+          token.role = next.role;
+          token.lastPwdCheck = next.lastPwdCheck;
         } catch {
           // Keep existing token on transient DB errors
         }

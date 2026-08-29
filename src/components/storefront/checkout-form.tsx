@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Landmark, LockKeyhole } from "lucide-react";
+import { Landmark, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,15 +22,33 @@ export function CheckoutForm({ locale, shippingMethods }: { locale: Locale; ship
   const items = useCartStore((state) => state.items);
   const clear = useCartStore((state) => state.clear);
   const [state, action, pending] = useActionState<CheckoutState, FormData>(createOrder, {});
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const subtotal = items.reduce((sum, line) => sum + line.price * line.quantity, 0);
   const currency = items[0]?.currency ?? "MAD";
 
   useEffect(() => {
     if (state.success && state.number) {
+      const storageKey = `lorvex-order-k:${state.number}`;
+      if (state.accessToken) {
+        try {
+          sessionStorage.setItem(storageKey, state.accessToken);
+        } catch {
+          /* ignore */
+        }
+      }
+      let access = state.accessToken;
+      if (!access) {
+        try {
+          access = sessionStorage.getItem(storageKey) ?? undefined;
+        } catch {
+          access = undefined;
+        }
+      }
       clear();
-      router.push(`/${locale}/order/${state.number}`);
+      const qs = access ? `?k=${encodeURIComponent(access)}` : "";
+      router.push(`/${locale}/order/${state.number}${qs}`);
     }
-  }, [clear, locale, router, state.number, state.success]);
+  }, [clear, locale, router, state.accessToken, state.number, state.success]);
 
   if (!items.length && !state.success) {
     return (
@@ -46,6 +64,8 @@ export function CheckoutForm({ locale, shippingMethods }: { locale: Locale; ship
   return (
     <form action={action} className="grid gap-10 lg:grid-cols-[1fr_390px]">
       <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+      <input type="hidden" name="paymentMethod" value="COD" />
       <input
         type="hidden"
         name="items"
@@ -114,21 +134,12 @@ export function CheckoutForm({ locale, shippingMethods }: { locale: Locale; ship
         </fieldset>
         <fieldset>
           <legend className="font-display text-3xl">{t.payment}</legend>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <label className="flex cursor-pointer items-center gap-3 border p-4">
-              <input type="radio" name="paymentMethod" value="COD" defaultChecked className="accent-[var(--accent)]" />
+          <div className="mt-5 grid gap-3">
+            <label className="flex items-center gap-3 border p-4">
               <Landmark className="h-5 w-5" />
               <span>
                 <strong className="block">{t.cashOnDelivery}</strong>
                 <small className="text-muted-foreground">{t.cashOnDeliveryHint}</small>
-              </span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-3 border p-4">
-              <input type="radio" name="paymentMethod" value="CARD" className="accent-[var(--accent)]" />
-              <CreditCard className="h-5 w-5" />
-              <span>
-                <strong className="block">{t.card}</strong>
-                <small className="text-muted-foreground">{t.cardHint}</small>
               </span>
             </label>
           </div>

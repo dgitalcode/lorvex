@@ -484,6 +484,8 @@ model Order {
   invoiceUrl        String?
   shippingAddressId String?
   billingAddressId  String?
+  accessTokenHash     String?       @unique
+  idempotencyKeyHash  String?       @unique
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
