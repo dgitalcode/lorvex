@@ -1,14 +1,61 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { CheckCircle2, Download } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { isLocale } from "@/i18n/get-dictionary";
 import { auth } from "@/lib/auth";
+import { missingCatalogMetadata } from "@/lib/seo-indexability";
 import { getClientIp } from "@/server/services/security";
 import { findAuthorizedStorefrontOrder } from "@/server/services/order-access";
 
-export const metadata = { title: "Order confirmed", robots: { index: false } };
+export const dynamic = "force-dynamic";
+
+type OrderPageProps = {
+  params: Promise<{ locale: string; number: string }>;
+  searchParams: Promise<{ k?: string | string[] }>;
+};
+
+const resolveAuthorizedOrder = cache(
+  async (locale: string, number: string, presentedToken: string | undefined) => {
+    if (!isLocale(locale)) {
+      return { status: "deny" as const, order: undefined };
+    }
+    return findAuthorizedStorefrontOrder({
+      number,
+      presentedToken,
+      session: await auth(),
+      ip: await getClientIp(),
+    });
+  },
+);
+
+function presentedAccessToken(k: string | string[] | undefined) {
+  return Array.isArray(k) ? k[0] : k;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: OrderPageProps): Promise<Metadata> {
+  const { locale, number } = await params;
+  const sp = await searchParams;
+  const result = await resolveAuthorizedOrder(
+    locale,
+    number,
+    presentedAccessToken(sp.k),
+  );
+  // Avoid invoking the App Router not-found helper from metadata (can yield HTTP 200).
+  if (result.status !== "allow" || !result.order) {
+    return {
+      ...missingCatalogMetadata(),
+      title: "Page introuvable",
+    };
+  }
+  return { title: "Order confirmed", robots: { index: false, follow: false } };
+}
 
 function paymentCopy(
   locale: string,
@@ -36,21 +83,11 @@ function paymentCopy(
 export default async function OrderPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ locale: string; number: string }>;
-  searchParams: Promise<{ k?: string | string[] }>;
-}) {
+}: OrderPageProps) {
   const { locale, number } = await params;
-  if (!isLocale(locale)) notFound();
   const sp = await searchParams;
-  const presentedToken = Array.isArray(sp.k) ? sp.k[0] : sp.k;
-  const session = await auth();
-  const result = await findAuthorizedStorefrontOrder({
-    number,
-    presentedToken,
-    session,
-    ip: await getClientIp(),
-  });
+  const presentedToken = presentedAccessToken(sp.k);
+  const result = await resolveAuthorizedOrder(locale, number, presentedToken);
   if (result.status !== "allow" || !result.order) notFound();
   const order = result.order;
 
