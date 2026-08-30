@@ -4,6 +4,7 @@ import { Providers } from "@/components/shared/providers";
 import { PwaRegister } from "@/components/shared/pwa-register";
 import { siteConfig } from "@/config/site";
 import { composeDocumentTitle } from "@/lib/document-title";
+import { brandOgImage, lorvexMetadataIcons } from "@/lib/brand-icons";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -38,13 +39,14 @@ export const metadata: Metadata = {
     type: "website",
     siteName: siteConfig.name,
     locale: "fr_MA",
+    url: siteConfig.url,
+    images: [brandOgImage],
   },
   twitter: {
     card: "summary_large_image",
+    images: [brandOgImage],
   },
-  icons: {
-    icon: "/icons/icon.svg",
-  },
+  icons: lorvexMetadataIcons,
   manifest: "/manifest.webmanifest",
 };
 

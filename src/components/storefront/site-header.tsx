@@ -248,13 +248,13 @@ export function SiteHeader({
         ) : null}
         <div
           className={cn(
-            "transition-[background,backdrop-filter,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "transition-[background,backdrop-filter,border-color,box-shadow,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
             solidNav
-              ? "border-b border-border/50 bg-background/90 shadow-[var(--shadow-soft)] backdrop-blur-xl"
-              : "border-b border-transparent bg-transparent",
+              ? "border-b border-border/50 bg-background/90 text-foreground shadow-[var(--shadow-soft)] backdrop-blur-xl"
+              : "border-b border-transparent bg-transparent text-[color:var(--hero-ink)]",
           )}
         >
-          <div className="luxury-container flex h-[var(--nav-bar-height)] items-center justify-between gap-4">
+          <div className="luxury-container flex h-[var(--nav-bar-height)] items-center justify-between gap-3 md:gap-8">
             <div className="flex items-center gap-3 md:hidden">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
@@ -337,15 +337,15 @@ export function SiteHeader({
             <Link
               href={`/${locale}`}
               onClick={closeMobile}
-              className="font-display text-2xl tracking-[0.28em] md:text-[1.65rem]"
+              className="font-display text-[1.45rem] tracking-[0.34em] md:text-[1.7rem]"
             >
               {settings.siteName}
             </Link>
 
-            <nav className="hidden items-center gap-8 md:flex">
+            <nav className="hidden flex-1 items-center justify-center gap-7 md:flex lg:gap-9">
               <button
                 type="button"
-                className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-accent"
+                className="text-[10px] uppercase tracking-[0.22em] opacity-90 transition-colors hover:text-accent hover:opacity-100"
                 onMouseEnter={() => setMegaOpen(true)}
                 onFocus={() => setMegaOpen(true)}
                 aria-expanded={megaOpen}
@@ -364,7 +364,7 @@ export function SiteHeader({
                       href={link.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-accent",
+                        "text-[10px] uppercase tracking-[0.22em] opacity-90 transition-colors hover:text-accent hover:opacity-100",
                         active && "text-accent",
                       )}
                     >
@@ -374,7 +374,7 @@ export function SiteHeader({
                 })}
             </nav>
 
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
               <div className="hidden items-center gap-1 lg:flex">
                 <LocaleSwitcher locale={locale} />
                 <ThemeToggle />

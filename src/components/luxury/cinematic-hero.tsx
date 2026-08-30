@@ -164,10 +164,10 @@ export function CinematicHero({
   return (
     <section
       ref={rootRef}
-      className="relative flex min-h-[100svh] items-end overflow-hidden bg-[#12110f]"
+      className="relative flex min-h-[100svh] items-end overflow-hidden bg-[color:var(--hero-veil)]"
     >
       <div ref={mediaRef} className="absolute inset-0 will-change-transform">
-        <div className="relative h-full w-full scale-105">
+        <div className="relative h-full w-full">
           <StorefrontImage
             src={imageUrl}
             alt=""
@@ -175,7 +175,7 @@ export function CinematicHero({
             priority
             fetchPriority="high"
             quality={85}
-            className="object-cover"
+            className="object-cover object-[center_30%] md:object-center"
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
             aria-hidden
           />
@@ -200,42 +200,50 @@ export function CinematicHero({
             </video>
           ) : null}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/35 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgb(12_11_10/0.28)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--hero-veil)]/80 via-[color:var(--hero-veil)]/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--hero-veil)] via-[color:var(--hero-veil)]/45 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,transparent_20%,rgb(28_25_22/0.35)_100%)]" />
       </div>
 
       <div
         ref={copyRef}
-        className="luxury-container relative z-10 pb-20 pt-40 will-change-transform md:pb-28"
+        className="luxury-container relative z-10 pb-16 pt-[calc(var(--header-height)+2.5rem)] will-change-transform md:pb-24 md:pt-[calc(var(--header-height)+4.5rem)]"
       >
-        <p className="text-[11px] uppercase tracking-[0.28em] text-foreground/80">
-          {dictionary.hero.eyebrow}
-        </p>
-        <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight text-balance md:text-7xl lg:text-8xl">
-          {title}
-        </h1>
-        <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80 md:text-lg">
-          {subtitle}
-        </p>
-        <div className="mt-10 flex flex-wrap gap-4">
-          <Button asChild size="xl">
-            <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
-              {dictionary.hero.ctaPrimary}
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="xl">
-            <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
-              {dictionary.hero.ctaSecondary}
-            </Link>
-          </Button>
+        <div className="max-w-xl md:max-w-2xl">
+          <p className="text-[10px] uppercase tracking-[0.32em] text-[color:var(--hero-ink-muted)]">
+            {dictionary.hero.eyebrow}
+          </p>
+          <h1 className="mt-5 max-w-[14ch] text-balance font-display text-[2.65rem] leading-[1.02] tracking-tight text-[color:var(--hero-ink)] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
+            {title}
+          </h1>
+          <p className="mt-6 max-w-md text-[0.95rem] leading-relaxed text-[color:var(--hero-ink-muted)] md:max-w-lg md:text-base">
+            {subtitle}
+          </p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Button asChild size="xl" variant="accent">
+              <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
+                {dictionary.hero.ctaPrimary}
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="xl"
+              className="border-[color:var(--hero-ink)]/35 text-[color:var(--hero-ink)] hover:border-[color:var(--hero-ink)] hover:bg-[color:var(--hero-ink)] hover:text-[color:var(--hero-veil)]"
+            >
+              <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
+                {dictionary.hero.ctaSecondary}
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
-        <span className="text-[10px] uppercase tracking-[0.28em] text-foreground/55">
+        <span className="text-[10px] uppercase tracking-[0.28em] text-[color:var(--hero-ink-muted)]">
           {storefrontCopy(locale).scroll}
         </span>
-        <span className="h-10 w-px origin-top animate-pulse bg-foreground/40" />
+        <span className="h-8 w-px origin-top bg-[color:var(--hero-ink)]/35" />
       </div>
     </section>
   );

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { getSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +21,6 @@ export function SignInForm({
   callbackUrl?: string;
 }) {
   const t = getAuthStrings(locale);
-  const router = useRouter();
   const [registering, setRegistering] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,14 +35,20 @@ export function SignInForm({
   const showRegistration = registering && !registerState.success && step === "credentials";
 
   async function goToPostLoginDestination() {
-    const session = await getSession();
+    const session = await Promise.race([
+      getSession(),
+      new Promise<null>((resolve) => {
+        window.setTimeout(() => resolve(null), 4000);
+      }),
+    ]);
     const destination = resolvePostLoginPath({
       role: session?.user?.role,
       locale,
       callbackUrl,
     });
-    router.push(destination);
-    router.refresh();
+    // Full navigation so middleware reads the session cookie on HTTPS
+    // (client RSC transitions can spin forever on /admin loading.tsx).
+    window.location.assign(destination);
   }
 
   async function completeSignIn(otpValue?: string) {

@@ -1,6 +1,7 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminRouteAuthorized } from "@/lib/auth-redirect";
+import { shouldUseSecureAuthCookie } from "@/lib/auth-session-cookie";
 
 function storefrontLocale(pathname: string): "fr" | "en" | "ar" | null {
   const segment = pathname.split("/")[1];
@@ -28,6 +29,7 @@ export default async function middleware(request: NextRequest) {
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secureCookie: shouldUseSecureAuthCookie(request.headers),
   });
   if (!token) {
     const signInUrl = new URL("/fr/auth/sign-in", request.url);

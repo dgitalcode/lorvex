@@ -94,6 +94,8 @@ export async function getDashboardMetrics(rangeDays = 30) {
     prisma.analyticsEvent.findMany({
       where: { name: "page_view", createdAt: { gte: from } },
       select: { createdAt: true },
+      take: 4000,
+      orderBy: { createdAt: "desc" },
     }),
     prisma.order.findMany({
       where: orderWhere,

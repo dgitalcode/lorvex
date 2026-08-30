@@ -43,6 +43,9 @@
   --shadow-lift: 0 2px 4px rgb(18 17 15 / 0.04), 0 16px 40px rgb(18 17 15 / 0.1);
   --glass: rgb(247 245 241 / 0.72);
   --glass-border: rgb(18 17 15 / 0.08);
+  --hero-ink: #efe8dc;
+  --hero-ink-muted: #d4cbbd;
+  --hero-veil: #1c1916;
 }
 
 .dark {
@@ -67,6 +70,9 @@
   --ring: #c9ae7a;
   --glass: rgb(12 11 10 / 0.72);
   --glass-border: rgb(242 238 230 / 0.08);
+  --hero-ink: #efe8dc;
+  --hero-ink-muted: #d4cbbd;
+  --hero-veil: #1c1916;
   --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.35);
   --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.45);
 }

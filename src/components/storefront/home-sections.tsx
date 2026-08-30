@@ -49,9 +49,9 @@ export function HeroSection({
   const { imageUrl, posterUrl, videoUrl } = resolveHeroMedia(content);
   const copy = storefrontCopy(locale);
   return (
-    <section className="relative flex min-h-[100svh] items-end overflow-hidden bg-[#12110f]">
+    <section className="relative flex min-h-[100svh] items-end overflow-hidden bg-[color:var(--hero-veil)]">
       <div className="absolute inset-0">
-        <div className="relative h-full w-full scale-105">
+        <div className="relative h-full w-full">
           <StorefrontImage
             src={imageUrl}
             alt=""
@@ -59,7 +59,7 @@ export function HeroSection({
             priority
             fetchPriority="high"
             quality={85}
-            className="object-cover"
+            className="object-cover object-[center_30%] md:object-center"
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
             aria-hidden
           />
@@ -67,37 +67,45 @@ export function HeroSection({
             <HeroVideo videoUrl={videoUrl} posterUrl={posterUrl} />
           ) : null}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/35 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgb(12_11_10/0.28)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--hero-veil)]/80 via-[color:var(--hero-veil)]/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--hero-veil)] via-[color:var(--hero-veil)]/45 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,transparent_20%,rgb(28_25_22/0.35)_100%)]" />
       </div>
-      <div className="luxury-container relative z-10 pb-20 pt-40 md:pb-28">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-foreground/80">
-          {dictionary.hero.eyebrow}
-        </p>
-        <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
-          {dictionary.hero.title}
-        </h1>
-        <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80 md:text-lg">
-          {dictionary.hero.subtitle}
-        </p>
-        <div className="mt-10 flex flex-wrap gap-4">
-          <Button asChild size="xl">
-            <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
-              {dictionary.hero.ctaPrimary}
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="xl">
-            <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
-              {dictionary.hero.ctaSecondary}
-            </Link>
-          </Button>
+      <div className="luxury-container relative z-10 pb-16 pt-[calc(var(--header-height)+2.5rem)] md:pb-24 md:pt-[calc(var(--header-height)+4.5rem)]">
+        <div className="max-w-xl md:max-w-2xl">
+          <p className="text-[10px] uppercase tracking-[0.32em] text-[color:var(--hero-ink-muted)]">
+            {dictionary.hero.eyebrow}
+          </p>
+          <h1 className="mt-5 max-w-[14ch] text-balance font-display text-[2.65rem] leading-[1.02] tracking-tight text-[color:var(--hero-ink)] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
+            {dictionary.hero.title}
+          </h1>
+          <p className="mt-6 max-w-md text-[0.95rem] leading-relaxed text-[color:var(--hero-ink-muted)] md:max-w-lg md:text-base">
+            {dictionary.hero.subtitle}
+          </p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Button asChild size="xl" variant="accent">
+              <Link href={content?.ctaPrimaryHref ?? `/${locale}/shop`}>
+                {dictionary.hero.ctaPrimary}
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="xl"
+              className="border-[color:var(--hero-ink)]/35 text-[color:var(--hero-ink)] hover:border-[color:var(--hero-ink)] hover:bg-[color:var(--hero-ink)] hover:text-[color:var(--hero-veil)]"
+            >
+              <Link href={content?.ctaSecondaryHref ?? `/${locale}/contact`}>
+                {dictionary.hero.ctaSecondary}
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
       <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
-        <span className="text-[10px] uppercase tracking-[0.28em] text-foreground/55">
+        <span className="text-[10px] uppercase tracking-[0.28em] text-[color:var(--hero-ink-muted)]">
           {copy.scroll}
         </span>
-        <span className="h-10 w-px origin-top animate-pulse bg-foreground/40" />
+        <span className="h-8 w-px origin-top bg-[color:var(--hero-ink)]/35" />
       </div>
     </section>
   );
