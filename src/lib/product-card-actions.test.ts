@@ -25,8 +25,14 @@ describe("storefront product card actions", () => {
     assert.match(card, /resolveAddToCartIntent/);
     assert.match(card, /group-focus-within/);
     assert.match(card, /md:flex md:group-hover:opacity-100/);
+    assert.match(card, /md:group-hover:opacity-100 md:group-focus-within:opacity-100/);
+    assert.match(card, /bg-\[rgb\(18_17_15_\/_0\.2\)\]/);
     assert.match(card, /stopPropagation/);
+    assert.match(card, /appearance-none/);
     assert.doesNotMatch(card, /bg-background\/90/);
+    assert.doesNotMatch(card, /rounded-full/);
+    assert.doesNotMatch(card, /md:group-hover:opacity-0/);
+    assert.doesNotMatch(card, /md:opacity-\[0\.92\]/);
     assert.equal(dictionaries.ar.product.addToCart, "أضف إلى السلة");
     assert.equal(dictionaries.fr.product.wishlist, "Ajouter aux favoris");
   });

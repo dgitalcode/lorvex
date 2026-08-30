@@ -64,11 +64,12 @@ export function ProductCard({
   const canAdd = Boolean(product.variantId) && stock > 0;
 
   const actionClass = cn(
-    "pointer-events-auto relative z-10 flex h-10 w-10 items-center justify-center bg-transparent",
-    "text-white drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.72)]",
-    "transition-[opacity,transform,color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-    "hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
-    "active:scale-[0.96]",
+    "pointer-events-auto relative z-10 flex h-11 w-11 items-center justify-center appearance-none border-0 bg-transparent p-0",
+    "text-white [filter:drop-shadow(0_0_1px_rgb(18_17_15_/_0.95))_drop-shadow(0_2px_8px_rgb(18_17_15_/_0.55))]",
+    "transition-[transform,color,filter] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+    "hover:scale-110 hover:text-accent",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+    "active:scale-[0.96] motion-reduce:hover:scale-100",
   );
 
   return (
@@ -81,7 +82,7 @@ export function ProductCard({
       <div className="relative aspect-[4/5] overflow-hidden border border-border/40 bg-secondary">
         <Link
           href={`/${locale}/product/${product.slug}`}
-          className="absolute inset-0 block"
+          className="absolute inset-0 z-0 block"
         >
           <StorefrontImage
             src={product.imageUrl}
@@ -90,13 +91,17 @@ export function ProductCard({
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             quality={80}
             priority={priority}
-            className="object-cover object-center transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] max-md:opacity-100 md:opacity-[0.92] md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:group-hover:scale-[1.03] md:group-focus-within:scale-[1.03] motion-reduce:scale-100 motion-reduce:opacity-100"
+            className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] md:group-hover:scale-[1.03] md:group-focus-within:scale-[1.03] motion-reduce:scale-100"
           />
         </Link>
 
-        <div className="pointer-events-none absolute inset-0 hidden bg-black/15 transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:block md:group-hover:opacity-0 md:group-focus-within:opacity-0 motion-reduce:hidden" />
+        {/* Desktop hover/focus: charcoal veil (~0.80 photo), never on the Image itself. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-[1] hidden bg-[rgb(18_17_15_/_0.2)] opacity-0 transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:block md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+        />
 
-        <div className="absolute start-3 top-3 flex flex-col gap-1.5">
+        <div className="absolute start-3 top-3 z-[2] flex flex-col gap-1.5">
           {product.isNewArrival && <Badge variant="accent">New</Badge>}
           {product.isLimitedEdition && <Badge>Limited</Badge>}
           {product.isBestSeller && <Badge variant="muted">Best</Badge>}
@@ -119,7 +124,7 @@ export function ProductCard({
             }}
             className={cn(actionClass, wished && "text-accent")}
           >
-            <Heart className={cn("h-5 w-5", wished && "fill-current")} />
+            <Heart className={cn("h-6 w-6", wished && "fill-current")} strokeWidth={1.5} />
           </button>
 
           <button
@@ -132,7 +137,7 @@ export function ProductCard({
             }}
             className={cn(actionClass, compared && "text-accent")}
           >
-            <GitCompareArrows className="h-5 w-5" />
+            <GitCompareArrows className="h-6 w-6" strokeWidth={1.5} />
           </button>
 
           <button
@@ -158,7 +163,7 @@ export function ProductCard({
             }}
             className={cn(actionClass, "disabled:opacity-40")}
           >
-            <ShoppingBag className="h-5 w-5" />
+            <ShoppingBag className="h-6 w-6" strokeWidth={1.5} />
           </button>
         </div>
       </div>
