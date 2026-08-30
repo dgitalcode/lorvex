@@ -14,6 +14,8 @@ import {
   type PopupEligiblePayload,
 } from "@/lib/marketing-popup";
 
+const STORAGE_PREFIX = "lorvex_popup_";
+
 function readStoredAt(id: string, frequency: PopupEligiblePayload["frequency"]) {
   try {
     if (frequency === "EVERY_VISIT") return null;
@@ -26,6 +28,29 @@ function readStoredAt(id: string, frequency: PopupEligiblePayload["frequency"]) 
   } catch {
     return null;
   }
+}
+
+function collectConsumedPopupIds(extra: Iterable<string> = []): string[] {
+  const ids = new Set(extra);
+  try {
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+      const key = sessionStorage.key(i);
+      if (!key?.startsWith(STORAGE_PREFIX)) continue;
+      ids.add(key.slice(STORAGE_PREFIX.length));
+    }
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith(STORAGE_PREFIX)) continue;
+      const raw = localStorage.getItem(key);
+      const storedAt = raw ? Number(raw) : null;
+      if (isFrequencyConsumed("ONCE_PER_DAY", storedAt)) {
+        ids.add(key.slice(STORAGE_PREFIX.length));
+      }
+    }
+  } catch {
+    /* private mode */
+  }
+  return [...ids];
 }
 
 function persistSeen(id: string, frequency: PopupEligiblePayload["frequency"]) {
@@ -58,6 +83,8 @@ function MarketingPopupRuntime({
   const [open, setOpen] = useState(false);
   const impressionRef = useRef<string | null>(null);
   const shownRef = useRef(false);
+  const suppressedRef = useRef<Set<string>>(new Set());
+  const loadRef = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -112,7 +139,9 @@ function MarketingPopupRuntime({
 
     const load = () => {
       const width = window.innerWidth;
-      const url = `/api/marketing/popups?locale=${encodeURIComponent(locale)}&path=${encodeURIComponent(pathname)}&w=${width}`;
+      const seen = collectConsumedPopupIds(suppressedRef.current);
+      const seenQuery = seen.length ? `&seen=${encodeURIComponent(seen.join(","))}` : "";
+      const url = `/api/marketing/popups?locale=${encodeURIComponent(locale)}&path=${encodeURIComponent(pathname)}&w=${width}${seenQuery}`;
       void fetch(url, { signal: abort.signal, headers: { accept: "application/json" } })
         .then((res) => (res.ok ? res.json() : { campaign: null }))
         .then((data: { campaign?: PopupEligiblePayload | null }) => {
@@ -126,6 +155,8 @@ function MarketingPopupRuntime({
         })
         .catch(() => undefined);
     };
+
+    loadRef.current = load;
 
     if (typeof window.requestIdleCallback === "function") {
       idleId = window.requestIdleCallback(load, { timeout: 2500 });
@@ -163,6 +194,10 @@ function MarketingPopupRuntime({
         if (!next && open) {
           persistSeen(campaign.id, campaign.frequency);
           trackPopupEvent("popup_dismiss", campaign.id);
+          suppressedRef.current.add(campaign.id);
+          shownRef.current = false;
+          setCampaign(null);
+          loadRef.current();
         }
         setOpen(next);
       }}

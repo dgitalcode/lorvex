@@ -18,6 +18,7 @@ import {
   resolvePopupCopy,
   sanitizePopupCtaUrl,
   scheduleIsActive,
+  selectEligibleWinner,
   visiblePopupCta,
   type PopupCampaignRecord,
   type PopupEligiblePayload,
@@ -182,8 +183,8 @@ describe("CTA rendering", () => {
     );
     assert.equal(copy?.ctaUrl, "/fr/shop");
     assert.equal(copy?.ctaLabel, null);
-    assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), null);
-    assert.equal(visiblePopupCta("   ", "/fr/shop"), null);
+    assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl, "fr"), null);
+    assert.equal(visiblePopupCta("   ", "/fr/shop", "fr"), null);
   });
 
   it("does not render when the CTA URL is missing", () => {
@@ -193,8 +194,8 @@ describe("CTA rendering", () => {
     );
     assert.equal(copy?.ctaLabel, "Shop now");
     assert.equal(copy?.ctaUrl, null);
-    assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), null);
-    assert.equal(visiblePopupCta("Shop now", null), null);
+    assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl, "fr"), null);
+    assert.equal(visiblePopupCta("Shop now", null, "fr"), null);
   });
 
   it("keeps internal paths as the CTA href", () => {
@@ -207,7 +208,7 @@ describe("CTA rendering", () => {
         { fr: { title: "Offre", body: "Go.", ctaLabel: "Shop now" }, ctaUrl: path },
         "fr",
       );
-      assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+      assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl, "en"), {
         label: "Shop now",
         href: path,
       });
@@ -222,7 +223,7 @@ describe("CTA rendering", () => {
       },
       "fr",
     );
-    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl, "en"), {
       label: "Instagram",
       href: "https://www.instagram.com/lorvex.ma/",
     });
@@ -241,7 +242,7 @@ describe("CTA rendering", () => {
         { fr: { title: "Offre", body: "Go.", ctaLabel: "Shop now" }, ctaUrl: bad },
         "fr",
       );
-      assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), null);
+      assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl, "fr"), null);
     }
   });
 
@@ -260,7 +261,7 @@ describe("CTA rendering", () => {
     });
   });
 
-  it("recovers a URL that was stored in the CTA label field", () => {
+  it("never renders a URL-looking label as public CTA text", () => {
     const copy = resolvePopupCopy(
       {
         fr: {
@@ -268,13 +269,37 @@ describe("CTA rendering", () => {
           body: "NEW FEATURE",
           ctaLabel: "https://www.instagram.com/lorvex.ma/",
         },
+        ctaUrl: "https://www.instagram.com/lorvex.ma/",
       },
       "fr",
     );
-    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
-      label: "https://www.instagram.com/lorvex.ma/",
-      href: "https://www.instagram.com/lorvex.ma/",
-    });
+    const cta = visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl, "fr");
+    assert.equal(cta?.href, "https://www.instagram.com/lorvex.ma/");
+    assert.equal(cta?.label, "Instagram");
+    assert.equal(/https?:\/\//i.test(cta?.label ?? "https://"), false);
+
+    const shop = visiblePopupCta(
+      "https://www.lorvex.ma/fr/shop",
+      "https://www.lorvex.ma/fr/shop",
+      "en",
+    );
+    assert.equal(shop?.label, "Shop");
+    assert.equal(shop?.href, "https://www.lorvex.ma/fr/shop");
+
+    const collection = visiblePopupCta(
+      "https://www.lorvex.ma/fr/collections/haute-complication",
+      "https://www.lorvex.ma/fr/collections/haute-complication",
+      "en",
+    );
+    assert.equal(collection?.label, "View collection");
+
+    const generic = visiblePopupCta(
+      "https://example.com/x",
+      "https://example.com/x",
+      "fr",
+    );
+    assert.equal(generic?.label, "Découvrir");
+    assert.equal(generic?.href, "https://example.com/x");
   });
 
   it("keeps storefront CTA click tracking as popup_click", () => {
@@ -290,6 +315,9 @@ describe("CTA rendering", () => {
     assert.equal([...host.matchAll(/trackPopupEvent\("popup_click"/g)].length, 1);
     assert.match(dialog, /onCta\?\.\(\)/);
     assert.match(dialog, /visiblePopupCta/);
+    assert.match(dialog, /target="_self"/);
+    assert.match(host, /seen=/);
+    assert.doesNotMatch(host, /pickHighestPriority/);
   });
 });
 
@@ -420,6 +448,50 @@ describe("frequency and priority", () => {
     };
     const b: PopupEligiblePayload = { ...a, id: "a", priority: 1, title: "A" };
     assert.equal(pickHighestPriority([a, b])?.id, "a");
+  });
+});
+
+describe("priority, frequency, and trigger selection", () => {
+  function payload(
+    id: string,
+    priority: number,
+    extra: Partial<PopupCampaignRecord> = {},
+  ): PopupEligiblePayload {
+    const result = campaignIsEligible({
+      ...baseInput,
+      campaign: campaign({ id, name: id, priority, ...extra }),
+    });
+    assert.ok(result);
+    return result;
+  }
+
+  it("selects priority 10 before 30 before 50, then the next after consume", () => {
+    const fifty = payload("camp-50", 50);
+    const ten = payload("camp-10", 10);
+    const thirty = payload("camp-30", 30);
+    const all = [fifty, ten, thirty];
+    assert.equal(selectEligibleWinner(all)?.id, "camp-10");
+    assert.equal(selectEligibleWinner(all, ["camp-10"])?.id, "camp-30");
+    assert.equal(selectEligibleWinner(all, ["camp-10", "camp-30"])?.id, "camp-50");
+  });
+
+  it("does not let a consumed high-priority session campaign block EVERY_VISIT", () => {
+    const seen = payload("camp-a", 10, { frequency: "ONCE_PER_SESSION" });
+    const next = payload("camp-b", 20, { frequency: "EVERY_VISIT" });
+    assert.equal(isFrequencyConsumed(seen.frequency, Date.now()), true);
+    assert.equal(selectEligibleWinner([seen, next], [seen.id])?.id, "camp-b");
+  });
+
+  it("does not let an IMMEDIATE lower-priority campaign bypass a DELAY winner", () => {
+    const delayed = payload("camp-delay", 10, {
+      trigger: "DELAY",
+      delaySeconds: 30,
+    });
+    const immediate = payload("camp-now", 20, { trigger: "IMMEDIATE" });
+    const winner = selectEligibleWinner([delayed, immediate]);
+    assert.equal(winner?.id, "camp-delay");
+    assert.equal(winner?.trigger, "DELAY");
+    assert.notEqual(winner?.id, "camp-now");
   });
 });
 

@@ -25,6 +25,7 @@ import { formatDate } from "@/lib/format";
 import {
   parsePageTargets,
   resolvePopupCopy,
+  visiblePopupCta,
   type PopupAudience,
   type PopupContent,
   type PopupDevice,
@@ -192,6 +193,7 @@ export function PopupsManager({ popups }: { popups: AdminPopupRow[] }) {
   const previewCampaign: PopupEligiblePayload | null = useMemo(() => {
     const copy = resolvePopupCopy(formPayload(form).content, previewLocale);
     if (!copy) return null;
+    const cta = visiblePopupCta(copy.ctaLabel, copy.ctaUrl, previewLocale);
     return {
       id: "preview",
       trigger: form.trigger,
@@ -203,7 +205,7 @@ export function PopupsManager({ popups }: { popups: AdminPopupRow[] }) {
       ctaUrl: copy.ctaUrl,
       title: copy.title,
       body: copy.body,
-      ctaLabel: copy.ctaLabel ?? null,
+      ctaLabel: cta?.label ?? null,
       locale: previewLocale,
     };
   }, [form, previewLocale]);

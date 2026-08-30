@@ -5,7 +5,8 @@ import { checkRateLimit } from "@/server/services/security";
 import { listEligiblePopups } from "@/server/repositories/marketing-popups";
 import {
   classifyDevice,
-  pickHighestPriority,
+  parseSeenCampaignIds,
+  selectEligibleWinner,
   type PopupDevice,
 } from "@/lib/marketing-popup";
 
@@ -37,13 +38,16 @@ export async function GET(request: Request) {
   const session = await auth().catch(() => null);
   const authenticated = Boolean(session?.user?.id);
 
+  const excludeIds = parseSeenCampaignIds(searchParams.get("seen"));
+
   const eligible = await listEligiblePopups({
     locale: localeParam,
     pathname,
     device,
     authenticated,
+    excludeIds,
   });
-  const campaign = pickHighestPriority(eligible);
+  const campaign = selectEligibleWinner(eligible, excludeIds);
 
   return NextResponse.json(
     { campaign },

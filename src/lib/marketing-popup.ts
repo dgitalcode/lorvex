@@ -164,6 +164,55 @@ export function scheduleIsActive(
   return true;
 }
 
+export function looksLikePopupCtaUrl(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/") || /^https?:\/\//i.test(trimmed)) {
+    return sanitizePopupCtaUrl(trimmed) !== null;
+  }
+  return false;
+}
+
+const GENERIC_CTA_LABEL: Record<Locale, string> = {
+  fr: "Découvrir",
+  en: "Discover",
+  ar: "اكتشف",
+};
+
+export function derivedPopupCtaLabel(href: string, locale: Locale): string {
+  let hostname = "";
+  let pathname = href;
+  if (!href.startsWith("/")) {
+    try {
+      const parsed = new URL(href);
+      hostname = parsed.hostname.replace(/^www\./, "").toLowerCase();
+      pathname = parsed.pathname;
+    } catch {
+      return GENERIC_CTA_LABEL[locale];
+    }
+  }
+
+  if (hostname === "instagram.com" || hostname.endsWith(".instagram.com")) {
+    return "Instagram";
+  }
+
+  const parts = pathname.split("/").filter(Boolean);
+  const rest =
+    parts[0] && ["fr", "en", "ar"].includes(parts[0]) ? parts.slice(1) : parts;
+  const first = rest[0] ?? "";
+  if (first === "shop") {
+    if (locale === "fr") return "Boutique";
+    if (locale === "ar") return "تسوق";
+    return "Shop";
+  }
+  if (first === "collections" || first === "collection") {
+    if (locale === "fr") return "Voir la collection";
+    if (locale === "ar") return "عرض المجموعة";
+    return "View collection";
+  }
+  return GENERIC_CTA_LABEL[locale];
+}
+
 function localeBlockCtaUrl(copy: PopupLocaleCopy | undefined): string | null {
   if (!copy || typeof copy !== "object") return null;
   if (!("ctaUrl" in copy)) return null;
@@ -192,11 +241,19 @@ function copyForLocale(content: PopupContent, locale: Locale): PopupLocaleCopy |
 export function visiblePopupCta(
   label: string | null | undefined,
   url: string | null | undefined,
+  locale: Locale = "fr",
 ): { label: string; href: string } | null {
-  const text = label?.trim() || null;
   const href = sanitizePopupCtaUrl(url);
-  if (!text || !href) return null;
-  return { label: text, href };
+  if (!href) return null;
+  const raw = label?.trim() || null;
+  if (!raw) return null;
+  const display = looksLikePopupCtaUrl(raw)
+    ? derivedPopupCtaLabel(href, locale)
+    : raw;
+  if (!display.trim() || looksLikePopupCtaUrl(display) || /^https?:\/\//i.test(display)) {
+    return { label: GENERIC_CTA_LABEL[locale], href };
+  }
+  return { label: display, href };
 }
 
 export function resolvePopupCopy(
@@ -302,6 +359,7 @@ export function campaignIsEligible(input: {
   if (!audienceMatches(campaign.audience, authenticated)) return null;
   const copy = resolvePopupCopy(campaign.content, locale);
   if (!copy) return null;
+  const cta = visiblePopupCta(copy.ctaLabel, copy.ctaUrl, locale);
 
   return {
     id: campaign.id,
@@ -314,7 +372,7 @@ export function campaignIsEligible(input: {
     ctaUrl: copy.ctaUrl,
     title: copy.title,
     body: copy.body,
-    ctaLabel: copy.ctaLabel ?? null,
+    ctaLabel: cta?.label ?? (copy.ctaLabel && !looksLikePopupCtaUrl(copy.ctaLabel) ? copy.ctaLabel : null),
     locale,
   };
 }
@@ -327,6 +385,23 @@ export function pickHighestPriority(
     if (a.priority !== b.priority) return a.priority - b.priority;
     return a.id.localeCompare(b.id);
   })[0]!;
+}
+
+export function parseSeenCampaignIds(raw: string | null | undefined): string[] {
+  if (!raw?.trim()) return [];
+  return raw
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => /^[a-z0-9_-]{8,64}$/i.test(id))
+    .slice(0, 40);
+}
+
+export function selectEligibleWinner(
+  payloads: PopupEligiblePayload[],
+  consumedIds: Iterable<string> = [],
+): PopupEligiblePayload | null {
+  const consumed = new Set(consumedIds);
+  return pickHighestPriority(payloads.filter((payload) => !consumed.has(payload.id)));
 }
 
 export function isFrequencyConsumed(

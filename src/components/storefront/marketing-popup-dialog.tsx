@@ -37,7 +37,7 @@ export function MarketingPopupDialog({
   preview?: boolean;
 }) {
   const dir = getDirection(campaign.locale);
-  const cta = visiblePopupCta(campaign.ctaLabel, campaign.ctaUrl);
+  const cta = visiblePopupCta(campaign.ctaLabel, campaign.ctaUrl, campaign.locale);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -64,11 +64,14 @@ export async function listEligiblePopups(input: {
   device: PopupDevice;
   authenticated: boolean;
   now?: Date;
+  excludeIds?: string[];
 }): Promise<PopupEligiblePayload[]> {
   const now = input.now ?? new Date();
+  const excludeIds = input.excludeIds?.filter(Boolean) ?? [];
   const rows = await prisma.popupCampaign.findMany({
     where: {
       isActive: true,
+      ...(excludeIds.length ? { id: { notIn: excludeIds } } : {}),
       AND: [
         { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
         { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
