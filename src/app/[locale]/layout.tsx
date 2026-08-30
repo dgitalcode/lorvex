@@ -9,6 +9,7 @@ import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
 import { StorefrontExperience } from "@/components/luxury/storefront-experience";
 import { AnalyticsTracker } from "@/components/shared/analytics-tracker";
 import { RoutePrefetcher } from "@/components/shared/route-prefetcher";
+import { MarketingPopupLoader } from "@/components/storefront/marketing-popup-loader";
 
 export function generateStaticParams() {
   return [{ locale: "fr" }, { locale: "en" }, { locale: "ar" }];
@@ -62,6 +63,7 @@ export default async function LocaleLayout({
       <StorefrontExperience locale={locale} dictionary={dictionary} />
       <AnalyticsTracker />
       <RoutePrefetcher locale={locale} />
+      <MarketingPopupLoader locale={locale} />
       <SiteHeader
         locale={locale}
         dictionary={dictionary}

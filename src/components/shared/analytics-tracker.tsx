@@ -97,3 +97,15 @@ export function trackCommerceEvent(
 ) {
   track({ name, meta, path: typeof window !== "undefined" ? window.location.pathname : undefined });
 }
+
+export function trackPopupEvent(
+  name: "popup_impression" | "popup_click" | "popup_dismiss",
+  campaignId: string,
+) {
+  track({
+    name,
+    entityType: "popup",
+    entityId: campaignId,
+    path: typeof window !== "undefined" ? window.location.pathname : undefined,
+  });
+}

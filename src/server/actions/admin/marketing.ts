@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { sanitizePopupCtaUrl } from "@/lib/marketing-popup";
 import { absoluteUrl } from "@/lib/format";
 import { isEmailConfigured, sendTransactionalEmail } from "@/lib/email";
 import { assertPermission } from "@/server/auth/require-admin";
@@ -80,6 +81,32 @@ function actionError(error: unknown): MarketingActionResult {
 
 function emptyToNull(value?: string | null) {
   return value?.trim() ? value.trim() : null;
+}
+
+function popupWriteData(data: CreatePopupInput) {
+  const ctaUrl = sanitizePopupCtaUrl(data.content.ctaUrl);
+  return {
+    name: data.name,
+    content: {
+      fr: data.content.fr,
+      en: data.content.en,
+      ar: data.content.ar,
+      ctaUrl,
+    } as Prisma.InputJsonValue,
+    trigger: data.trigger,
+    delaySeconds: data.trigger === "DELAY" || data.trigger === "EXIT_INTENT" ? data.delaySeconds ?? 8 : null,
+    scrollPercent: data.trigger === "SCROLL" ? data.scrollPercent ?? 50 : null,
+    pageTargets: data.pageTargets as Prisma.InputJsonValue,
+    localeTarget: data.localeTarget,
+    deviceTarget: data.deviceTarget,
+    audience: data.audience,
+    frequency: data.frequency,
+    priority: data.priority,
+    imageUrl: emptyToNull(data.imageUrl),
+    startsAt: data.startsAt ?? null,
+    endsAt: data.endsAt ?? null,
+    isActive: data.isActive,
+  };
 }
 
 function randomReferralCode() {
@@ -456,14 +483,7 @@ export async function createPopup(input: CreatePopupInput): Promise<MarketingAct
     const data = parsed.data;
 
     const popup = await prisma.popupCampaign.create({
-      data: {
-        name: data.name,
-        content: data.content,
-        trigger: data.trigger,
-        startsAt: data.startsAt ?? null,
-        endsAt: data.endsAt ?? null,
-        isActive: data.isActive,
-      },
+      data: popupWriteData(data),
     });
 
     await writeAuditLog({
@@ -492,14 +512,7 @@ export async function updatePopup(input: UpdatePopupInput): Promise<MarketingAct
 
     const popup = await prisma.popupCampaign.update({
       where: { id: data.id },
-      data: {
-        name: data.name,
-        content: data.content,
-        trigger: data.trigger,
-        startsAt: data.startsAt ?? null,
-        endsAt: data.endsAt ?? null,
-        isActive: data.isActive,
-      },
+      data: popupWriteData(data),
     });
 
     await writeAuditLog({

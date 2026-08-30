@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sanitizePopupCtaUrl } from "@/lib/marketing-popup";
 
 const cuid = z.string().cuid();
 const optionalDate = z.coerce.date().optional().nullable();
@@ -65,19 +66,108 @@ export const sendCampaignSchema = z.object({
   id: cuid,
 });
 
-export const createPopupSchema = z.object({
-  name: z.string().min(2).max(120),
-  content: z.object({
-    title: z.string().min(1).max(200),
-    body: z.string().min(1).max(5000),
-    ctaLabel: z.string().max(80).optional().nullable(),
-    ctaUrl: z.string().url().optional().nullable().or(z.literal("")),
-  }),
-  trigger: z.enum(["EXIT_INTENT", "DELAY", "SCROLL", "IMMEDIATE"]),
-  startsAt: optionalDate,
-  endsAt: optionalDate,
-  isActive: z.boolean().default(true),
+const popupLocaleCopySchema = z.object({
+  title: z.string().max(200),
+  body: z.string().max(5000),
+  ctaLabel: z.string().max(80).optional().nullable(),
 });
+
+export const createPopupSchema = z
+  .object({
+    name: z.string().min(2).max(120),
+    content: z.object({
+      fr: popupLocaleCopySchema.optional(),
+      en: popupLocaleCopySchema.optional(),
+      ar: popupLocaleCopySchema.optional(),
+      title: z.string().max(200).optional(),
+      body: z.string().max(5000).optional(),
+      ctaLabel: z.string().max(80).optional().nullable(),
+      ctaUrl: z.string().max(500).optional().nullable().or(z.literal("")),
+    }),
+    trigger: z.enum(["EXIT_INTENT", "DELAY", "SCROLL", "IMMEDIATE"]),
+    delaySeconds: z.coerce.number().int().min(1).max(120).optional().nullable(),
+    scrollPercent: z.coerce.number().int().min(10).max(95).optional().nullable(),
+    pageTargets: z
+      .array(z.enum(["ALL", "HOME", "SHOP", "COLLECTION", "PRODUCT", "OTHER"]))
+      .min(1)
+      .default(["ALL"]),
+    localeTarget: z.enum(["all", "fr", "en", "ar"]).default("all"),
+    deviceTarget: z.enum(["ALL", "DESKTOP", "MOBILE"]).default("ALL"),
+    audience: z.enum(["ALL", "GUESTS", "AUTHENTICATED"]).default("ALL"),
+    frequency: z
+      .enum(["EVERY_VISIT", "ONCE_PER_SESSION", "ONCE_PER_DAY"])
+      .default("ONCE_PER_SESSION"),
+    priority: z.coerce.number().int().min(1).max(100).default(50),
+    imageUrl: z.string().max(800).optional().nullable().or(z.literal("")),
+    startsAt: optionalDate,
+    endsAt: optionalDate,
+    isActive: z.boolean().default(true),
+  })
+  .superRefine((value, ctx) => {
+    const hasLegacy = Boolean(value.content.title?.trim() && value.content.body?.trim());
+    const hasLocalized = (["fr", "en", "ar"] as const).some(
+      (locale) =>
+        Boolean(value.content[locale]?.title?.trim()) &&
+        Boolean(value.content[locale]?.body?.trim()),
+    );
+    if (!hasLegacy && !hasLocalized) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Add a title and body in at least one language.",
+        path: ["content"],
+      });
+    }
+    const ctaUrl = value.content.ctaUrl?.trim();
+    if (ctaUrl) {
+      if (!sanitizePopupCtaUrl(ctaUrl)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "CTA URL must be an internal path or https URL.",
+          path: ["content", "ctaUrl"],
+        });
+      }
+    }
+    const imageUrl = value.imageUrl?.trim();
+    if (imageUrl) {
+      try {
+        const parsed = new URL(imageUrl);
+        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+          ctx.addIssue({
+            code: "custom",
+            message: "Image URL must be http(s).",
+            path: ["imageUrl"],
+          });
+        }
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          message: "Image URL is invalid.",
+          path: ["imageUrl"],
+        });
+      }
+    }
+    if (value.trigger === "DELAY" && !value.delaySeconds) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Delay trigger requires delay seconds.",
+        path: ["delaySeconds"],
+      });
+    }
+    if (value.trigger === "SCROLL" && !value.scrollPercent) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Scroll trigger requires a percentage.",
+        path: ["scrollPercent"],
+      });
+    }
+    if (value.startsAt && value.endsAt && value.endsAt <= value.startsAt) {
+      ctx.addIssue({
+        code: "custom",
+        message: "End date must be after start date.",
+        path: ["endsAt"],
+      });
+    }
+  });
 
 export const updatePopupSchema = createPopupSchema.extend({
   id: cuid,
