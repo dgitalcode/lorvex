@@ -18,6 +18,7 @@ import {
   resolvePopupCopy,
   sanitizePopupCtaUrl,
   scheduleIsActive,
+  visiblePopupCta,
   type PopupCampaignRecord,
   type PopupEligiblePayload,
 } from "./marketing-popup";
@@ -146,8 +147,149 @@ describe("CTA security", () => {
     assert.equal(sanitizePopupCtaUrl("vbscript:msg"), null);
     assert.equal(sanitizePopupCtaUrl("//evil.example"), null);
     assert.equal(sanitizePopupCtaUrl("http://evil.example"), null);
+    assert.equal(sanitizePopupCtaUrl("file:///etc/passwd"), null);
+    assert.equal(sanitizePopupCtaUrl("blob:https://www.lorvex.ma/x"), null);
     assert.equal(isInternalPopupHref("/fr/shop"), true);
+    assert.equal(isInternalPopupHref("/fr/collections/haute-complication"), true);
+    assert.equal(isInternalPopupHref("/fr/product/noir-imperial-40"), true);
     assert.equal(isInternalPopupHref("https://example.com"), false);
+  });
+});
+
+describe("CTA rendering", () => {
+  it("renders when both a valid label and URL are present", () => {
+    const copy = resolvePopupCopy(
+      {
+        fr: { title: "Offre", body: "Découvrez.", ctaLabel: "Shop now" },
+        ctaUrl: "https://www.lorvex.ma/fr/shop",
+      },
+      "fr",
+    );
+    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+      label: "Shop now",
+      href: "https://www.lorvex.ma/fr/shop",
+    });
+    const eligible = campaignIsEligible({ ...baseInput, campaign: campaign() });
+    assert.equal(eligible?.ctaLabel, "Voir");
+    assert.equal(eligible?.ctaUrl, "/fr/shop");
+    assert.ok(visiblePopupCta(eligible?.ctaLabel, eligible?.ctaUrl));
+  });
+
+  it("does not render when the CTA label is missing", () => {
+    const copy = resolvePopupCopy(
+      { fr: { title: "Offre", body: "Découvrez." }, ctaUrl: "/fr/shop" },
+      "fr",
+    );
+    assert.equal(copy?.ctaUrl, "/fr/shop");
+    assert.equal(copy?.ctaLabel, null);
+    assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), null);
+    assert.equal(visiblePopupCta("   ", "/fr/shop"), null);
+  });
+
+  it("does not render when the CTA URL is missing", () => {
+    const copy = resolvePopupCopy(
+      { fr: { title: "Offre", body: "Découvrez.", ctaLabel: "Shop now" } },
+      "fr",
+    );
+    assert.equal(copy?.ctaLabel, "Shop now");
+    assert.equal(copy?.ctaUrl, null);
+    assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), null);
+    assert.equal(visiblePopupCta("Shop now", null), null);
+  });
+
+  it("keeps internal paths as the CTA href", () => {
+    for (const path of [
+      "/fr/shop",
+      "/fr/collections/haute-complication",
+      "/fr/product/noir-imperial-40",
+    ]) {
+      const copy = resolvePopupCopy(
+        { fr: { title: "Offre", body: "Go.", ctaLabel: "Shop now" }, ctaUrl: path },
+        "fr",
+      );
+      assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+        label: "Shop now",
+        href: path,
+      });
+    }
+  });
+
+  it("keeps https external URLs as the CTA href", () => {
+    const copy = resolvePopupCopy(
+      {
+        fr: { title: "Offre", body: "Go.", ctaLabel: "Instagram" },
+        ctaUrl: "https://www.instagram.com/lorvex.ma/",
+      },
+      "fr",
+    );
+    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+      label: "Instagram",
+      href: "https://www.instagram.com/lorvex.ma/",
+    });
+  });
+
+  it("does not render an unsafe CTA URL", () => {
+    for (const bad of [
+      "javascript:alert(1)",
+      "data:text/html,hi",
+      "vbscript:msg",
+      "file:///tmp",
+      "blob:https://www.lorvex.ma/x",
+      "//evil.example",
+    ]) {
+      const copy = resolvePopupCopy(
+        { fr: { title: "Offre", body: "Go.", ctaLabel: "Shop now" }, ctaUrl: bad },
+        "fr",
+      );
+      assert.equal(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), null);
+    }
+  });
+
+  it("does not drop a root-level CTA label when localized title/body exist", () => {
+    const copy = resolvePopupCopy(
+      {
+        fr: { title: "NEW FEATURE", body: "NEW FEATURE" },
+        ctaLabel: "Shop now",
+        ctaUrl: "https://www.lorvex.ma/fr/shop",
+      },
+      "fr",
+    );
+    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+      label: "Shop now",
+      href: "https://www.lorvex.ma/fr/shop",
+    });
+  });
+
+  it("recovers a URL that was stored in the CTA label field", () => {
+    const copy = resolvePopupCopy(
+      {
+        fr: {
+          title: "NEW FEATURE",
+          body: "NEW FEATURE",
+          ctaLabel: "https://www.instagram.com/lorvex.ma/",
+        },
+      },
+      "fr",
+    );
+    assert.deepEqual(visiblePopupCta(copy?.ctaLabel, copy?.ctaUrl), {
+      label: "https://www.instagram.com/lorvex.ma/",
+      href: "https://www.instagram.com/lorvex.ma/",
+    });
+  });
+
+  it("keeps storefront CTA click tracking as popup_click", () => {
+    const host = readFileSync(
+      join(process.cwd(), "src/components/storefront/marketing-popup-host.tsx"),
+      "utf8",
+    );
+    const dialog = readFileSync(
+      join(process.cwd(), "src/components/storefront/marketing-popup-dialog.tsx"),
+      "utf8",
+    );
+    assert.match(host, /trackPopupEvent\("popup_click", campaign\.id\)/);
+    assert.equal([...host.matchAll(/trackPopupEvent\("popup_click"/g)].length, 1);
+    assert.match(dialog, /onCta\?\.\(\)/);
+    assert.match(dialog, /visiblePopupCta/);
   });
 });
 

@@ -24,6 +24,7 @@ import type { Locale } from "@/config/site";
 import { formatDate } from "@/lib/format";
 import {
   parsePageTargets,
+  resolvePopupCopy,
   type PopupAudience,
   type PopupContent,
   type PopupDevice,
@@ -189,13 +190,8 @@ export function PopupsManager({ popups }: { popups: AdminPopupRow[] }) {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const previewCampaign: PopupEligiblePayload | null = useMemo(() => {
-    const copy =
-      previewLocale === "ar"
-        ? { title: form.arTitle, body: form.arBody, cta: form.arCta }
-        : previewLocale === "en"
-          ? { title: form.enTitle, body: form.enBody, cta: form.enCta }
-          : { title: form.frTitle, body: form.frBody, cta: form.frCta };
-    if (!copy.title.trim() || !copy.body.trim()) return null;
+    const copy = resolvePopupCopy(formPayload(form).content, previewLocale);
+    if (!copy) return null;
     return {
       id: "preview",
       trigger: form.trigger,
@@ -204,10 +200,10 @@ export function PopupsManager({ popups }: { popups: AdminPopupRow[] }) {
       frequency: form.frequency,
       priority: Number(form.priority) || 50,
       imageUrl: form.imageUrl || null,
-      ctaUrl: form.ctaUrl || null,
+      ctaUrl: copy.ctaUrl,
       title: copy.title,
       body: copy.body,
-      ctaLabel: copy.cta || null,
+      ctaLabel: copy.ctaLabel ?? null,
       locale: previewLocale,
     };
   }, [form, previewLocale]);

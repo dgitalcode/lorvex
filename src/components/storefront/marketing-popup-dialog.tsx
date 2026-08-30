@@ -13,6 +13,7 @@ import { getDirection } from "@/i18n/get-dictionary";
 import type { Locale } from "@/config/site";
 import {
   isInternalPopupHref,
+  visiblePopupCta,
   type PopupEligiblePayload,
 } from "@/lib/marketing-popup";
 
@@ -36,8 +37,7 @@ export function MarketingPopupDialog({
   preview?: boolean;
 }) {
   const dir = getDirection(campaign.locale);
-  const href = campaign.ctaUrl;
-  const showCta = Boolean(href && campaign.ctaLabel);
+  const cta = visiblePopupCta(campaign.ctaLabel, campaign.ctaUrl);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,16 +79,17 @@ export function MarketingPopupDialog({
           >
             {campaign.body}
           </DialogDescription>
-          {showCta && href ? (
+          {cta ? (
             <Button asChild variant="accent" size="lg" className="w-full sm:w-auto">
               <a
-                href={href}
-                rel={isInternalPopupHref(href) ? undefined : "noopener noreferrer"}
+                href={cta.href}
+                target="_self"
+                rel={isInternalPopupHref(cta.href) ? undefined : "noopener noreferrer"}
                 onClick={() => {
                   if (!preview) onCta?.();
                 }}
               >
-                {campaign.ctaLabel}
+                {cta.label}
               </a>
             </Button>
           ) : null}

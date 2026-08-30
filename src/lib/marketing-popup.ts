@@ -164,13 +164,19 @@ export function scheduleIsActive(
   return true;
 }
 
+function localeBlockCtaUrl(copy: PopupLocaleCopy | undefined): string | null {
+  if (!copy || typeof copy !== "object") return null;
+  if (!("ctaUrl" in copy)) return null;
+  return sanitizePopupCtaUrl((copy as PopupLocaleCopy & { ctaUrl?: string | null }).ctaUrl);
+}
+
 function copyForLocale(content: PopupContent, locale: Locale): PopupLocaleCopy | null {
   const localized = content[locale];
   if (localized?.title?.trim() && localized.body?.trim()) {
     return {
       title: localized.title.trim(),
       body: localized.body.trim(),
-      ctaLabel: localized.ctaLabel?.trim() || null,
+      ctaLabel: localized.ctaLabel?.trim() || content.ctaLabel?.trim() || null,
     };
   }
   if (content.title?.trim() && content.body?.trim()) {
@@ -183,13 +189,27 @@ function copyForLocale(content: PopupContent, locale: Locale): PopupLocaleCopy |
   return null;
 }
 
+export function visiblePopupCta(
+  label: string | null | undefined,
+  url: string | null | undefined,
+): { label: string; href: string } | null {
+  const text = label?.trim() || null;
+  const href = sanitizePopupCtaUrl(url);
+  if (!text || !href) return null;
+  return { label: text, href };
+}
+
 export function resolvePopupCopy(
   content: PopupContent,
   locale: Locale,
 ): (PopupLocaleCopy & { ctaUrl: string | null }) | null {
   const copy = copyForLocale(content, locale);
   if (!copy) return null;
-  return { ...copy, ctaUrl: sanitizePopupCtaUrl(content.ctaUrl) };
+  const href =
+    sanitizePopupCtaUrl(content.ctaUrl) ??
+    localeBlockCtaUrl(content[locale]) ??
+    sanitizePopupCtaUrl(copy.ctaLabel);
+  return { ...copy, ctaUrl: href };
 }
 
 const UNSAFE_SCHEME = /^(javascript|data|vbscript|file|blob):/i;
