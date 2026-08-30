@@ -248,10 +248,10 @@ export function SiteHeader({
         ) : null}
         <div
           className={cn(
-            "transition-[background,backdrop-filter,border-color,box-shadow,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "transition-[background,backdrop-filter,border-color,box-shadow,color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
             solidNav
               ? "border-b border-border/50 bg-background/90 text-foreground shadow-[var(--shadow-soft)] backdrop-blur-xl"
-              : "border-b border-transparent bg-transparent text-[color:var(--hero-ink)]",
+              : "border-b border-transparent bg-transparent text-[color:var(--hero-ink)] shadow-none",
           )}
         >
           <div className="luxury-container flex h-[var(--nav-bar-height)] items-center justify-between gap-3 md:gap-8">
