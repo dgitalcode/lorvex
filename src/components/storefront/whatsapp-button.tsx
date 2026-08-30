@@ -73,10 +73,16 @@ export function WhatsAppButton({
     >
       <span className="relative flex items-center">
         {!reduce && (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-full bg-[#25D366]/40 wa-pulse"
-          />
+          <>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-full bg-[#25D366]/35 wa-pulse"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-full bg-[#25D366]/25 wa-pulse [animation-delay:1.4s]"
+            />
+          </>
         )}
         <span
           className={cn(

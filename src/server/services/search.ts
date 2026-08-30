@@ -69,8 +69,9 @@ function toCard(product: {
   isBestSeller: boolean;
   brand: { name: string };
   media: { url: string }[];
-  variants: { price: Prisma.Decimal | null; imageUrl: string | null }[];
+  variants: { price: Prisma.Decimal | null; imageUrl: string | null; id: string; name: string; stock: number }[];
 }): ProductCardData {
+  const variant = product.variants[0];
   return {
     id: product.id,
     name: product.name,
@@ -78,9 +79,9 @@ function toCard(product: {
     brandName: product.brand.name,
     imageUrl:
       product.media[0]?.url ??
-      product.variants[0]?.imageUrl ??
+      variant?.imageUrl ??
       "/icons/icon.svg",
-    price: Number(product.variants[0]?.price ?? product.basePrice),
+    price: Number(variant?.price ?? product.basePrice),
     compareAtPrice: product.compareAtPrice
       ? Number(product.compareAtPrice)
       : null,
@@ -88,6 +89,9 @@ function toCard(product: {
     isNewArrival: product.isNewArrival,
     isLimitedEdition: product.isLimitedEdition,
     isBestSeller: product.isBestSeller,
+    variantId: variant?.id ?? null,
+    variantName: variant?.name ?? null,
+    stock: variant?.stock ?? 0,
   };
 }
 
@@ -114,6 +118,9 @@ const productSelect = {
     orderBy: [{ isDefault: "desc" as const }, { sortOrder: "asc" as const }],
     take: 1,
     select: {
+      id: true,
+      name: true,
+      stock: true,
       price: true,
       imageUrl: true,
       barcode: true,

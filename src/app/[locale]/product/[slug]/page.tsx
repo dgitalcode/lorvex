@@ -70,6 +70,9 @@ export default async function ProductPage({ params }: Props) {
     compareAtPrice: item.compareAtPrice ? Number(item.compareAtPrice) : null,
     currency: item.currency, isNewArrival: item.isNewArrival,
     isLimitedEdition: item.isLimitedEdition, isBestSeller: item.isBestSeller,
+    variantId: item.variants[0]?.id ?? null,
+    variantName: item.variants[0]?.name ?? null,
+    stock: item.variants[0]?.stock ?? 0,
   });
 
   const frequentlyBought = product.relatedFrom

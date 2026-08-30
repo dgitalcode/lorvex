@@ -244,19 +244,22 @@ main > * h1:first-of-type,
 
 /* Subtle WhatsApp attention — luxury restraint, not flashy */
 @keyframes wa-pulse {
-  0%,
-  100% {
+  0% {
     transform: scale(1);
-    opacity: 0.35;
+    opacity: 0;
   }
-  50% {
-    transform: scale(1.28);
+  22% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: scale(1.42);
     opacity: 0;
   }
 }
 
 .wa-pulse {
-  animation: wa-pulse 3.6s var(--luxury-ease) infinite;
+  animation: wa-pulse 2.8s var(--luxury-ease) infinite;
+  will-change: transform, opacity;
 }
 
 .premium-cursor a,

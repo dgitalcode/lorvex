@@ -16,10 +16,11 @@ function toCard(
     isBestSeller: boolean;
     brand: { name: string };
     media: { url: string }[];
-    variants: { price: Prisma.Decimal | null; imageUrl: string | null }[];
+    variants: { price: Prisma.Decimal | null; imageUrl: string | null; id: string; name: string; stock: number }[];
   },
 ): ProductCardData {
-  const variantPrice = product.variants[0]?.price;
+  const variant = product.variants[0];
+  const variantPrice = variant?.price;
   return {
     id: product.id,
     name: product.name,
@@ -27,7 +28,7 @@ function toCard(
     brandName: product.brand.name,
     imageUrl:
       product.media[0]?.url ??
-      product.variants[0]?.imageUrl ??
+      variant?.imageUrl ??
       "/images/lorvex/watch-01.jpg",
 
     price: Number(variantPrice ?? product.basePrice),
@@ -38,6 +39,9 @@ function toCard(
     isNewArrival: product.isNewArrival,
     isLimitedEdition: product.isLimitedEdition,
     isBestSeller: product.isBestSeller,
+    variantId: variant?.id ?? null,
+    variantName: variant?.name ?? null,
+    stock: variant?.stock ?? 0,
   };
 }
 
