@@ -61,8 +61,8 @@ function MarketingPopupRuntime({
 
   useEffect(() => {
     let cancelled = false;
-    let delayTimer = 0;
-    let idleId = 0;
+    let delayTimer: number | undefined;
+    let idleId: number | undefined;
     const abort = new AbortController();
 
     const arm = (payload: PopupEligiblePayload) => {
@@ -127,7 +127,7 @@ function MarketingPopupRuntime({
         .catch(() => undefined);
     };
 
-    if ("requestIdleCallback" in window) {
+    if (typeof window.requestIdleCallback === "function") {
       idleId = window.requestIdleCallback(load, { timeout: 2500 });
     } else {
       delayTimer = window.setTimeout(load, 600);
@@ -136,10 +136,12 @@ function MarketingPopupRuntime({
     return () => {
       cancelled = true;
       abort.abort();
-      if (idleId && "cancelIdleCallback" in window) {
+      if (idleId !== undefined && typeof window.cancelIdleCallback === "function") {
         window.cancelIdleCallback(idleId);
       }
-      window.clearTimeout(delayTimer);
+      if (delayTimer !== undefined) {
+        window.clearTimeout(delayTimer);
+      }
     };
   }, [locale, pathname]);
 
