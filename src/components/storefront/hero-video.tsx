@@ -11,10 +11,8 @@ function videoMimeFromUrl(url: string): string | undefined {
 
 export function HeroVideo({
   videoUrl,
-  posterUrl,
 }: {
   videoUrl: string;
-  posterUrl: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mime = videoMimeFromUrl(videoUrl);
@@ -47,13 +45,12 @@ export function HeroVideo({
     <video
       key={videoUrl}
       ref={videoRef}
-      className="absolute inset-0 h-full w-full object-cover object-center"
+      className="absolute inset-0 h-full w-full bg-[color:var(--hero-veil)] object-cover object-center"
       autoPlay
       muted
       loop
       playsInline
       preload="metadata"
-      poster={posterUrl}
       aria-hidden
     >
       {mime ? <source src={videoUrl} type={mime} /> : <source src={videoUrl} />}

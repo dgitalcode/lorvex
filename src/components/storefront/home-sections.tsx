@@ -24,17 +24,13 @@ function resolveHeroMedia(content?: CinematicHeroContent) {
         : content?.imageUrl?.trim()
           ? "image"
           : "none";
-  const posterUrl =
-    content?.posterUrl?.trim() ||
-    content?.imageUrl?.trim() ||
-    DEFAULT_HERO;
   const imageUrl =
     mediaType === "none"
       ? DEFAULT_HERO
-      : content?.imageUrl?.trim() || posterUrl || DEFAULT_HERO;
+      : content?.imageUrl?.trim() || DEFAULT_HERO;
   const videoUrl =
     mediaType === "video" ? content?.videoUrl?.trim() || "" : "";
-  return { imageUrl, posterUrl, videoUrl };
+  return { imageUrl, videoUrl };
 }
 
 export function HeroSection({
@@ -46,26 +42,27 @@ export function HeroSection({
   dictionary: Dictionary;
   content?: CinematicHeroContent;
 }) {
-  const { imageUrl, posterUrl, videoUrl } = resolveHeroMedia(content);
+  const { imageUrl, videoUrl } = resolveHeroMedia(content);
   const copy = storefrontCopy(locale);
   return (
     <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-[color:var(--hero-veil)]">
       <div className="absolute inset-0" aria-hidden>
-        <div className="relative h-full w-full">
-          <StorefrontImage
-            src={imageUrl}
-            alt=""
-            fill
-            priority
-            fetchPriority="high"
-            quality={85}
-            className="object-cover object-center"
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
-            aria-hidden
-          />
+        <div className="relative h-full w-full bg-[color:var(--hero-veil)]">
           {videoUrl ? (
-            <HeroVideo videoUrl={videoUrl} posterUrl={posterUrl} />
-          ) : null}
+            <HeroVideo videoUrl={videoUrl} />
+          ) : (
+            <StorefrontImage
+              src={imageUrl}
+              alt=""
+              fill
+              priority
+              fetchPriority="high"
+              quality={85}
+              className="object-cover object-center"
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1920px"
+              aria-hidden
+            />
+          )}
         </div>
         <div className="absolute inset-0 bg-[color:var(--hero-veil)]/20" />
         <div className="absolute inset-x-0 top-0 h-[min(32vh,15rem)] bg-gradient-to-b from-[color:var(--hero-veil)]/65 to-transparent" />

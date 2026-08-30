@@ -34,5 +34,18 @@ describe("home hero composition", () => {
     assert.match(video, /object-center/);
     assert.match(video, /preload="metadata"/);
     assert.doesNotMatch(video, /fetchPriority/);
+    assert.doesNotMatch(video, /poster/);
+    assert.doesNotMatch(video, /hero\.jpg/);
+  });
+
+  it("does not paint a poster or fallback image under a video hero", () => {
+    const section = hero.slice(
+      hero.indexOf("export function HeroSection"),
+      hero.indexOf("export function ProductRail"),
+    );
+    assert.match(section, /videoUrl \? \(/);
+    assert.match(section, /<HeroVideo videoUrl=\{videoUrl\} \/>/);
+    assert.doesNotMatch(section, /posterUrl/);
+    assert.doesNotMatch(section, /poster=/);
   });
 });
