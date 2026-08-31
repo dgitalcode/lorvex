@@ -23,9 +23,13 @@ describe("storefront product card actions", () => {
     assert.match(card, /compare\.toggle\(product\.id\)/);
     assert.match(card, /addItem\(/);
     assert.match(card, /resolveAddToCartIntent/);
-    assert.match(card, /group-focus-within/);
-    assert.match(card, /md:flex md:group-hover:opacity-100/);
-    assert.match(card, /md:group-hover:opacity-100 md:group-focus-within:opacity-100/);
+    assert.match(card, /product-card-actions/);
+    assert.match(card, /product-card-veil/);
+    assert.match(card, /md:flex/);
+    assert.match(css, /@media \(hover: hover\) and \(pointer: fine\)/);
+    assert.match(css, /\.group:hover \.product-card-actions/);
+    assert.match(css, /\.group:focus-within \.product-card-actions/);
+    assert.doesNotMatch(card, /md:group-hover:opacity-100/);
     assert.match(card, /bg-\[rgb\(18_17_15_\/_0\.2\)\]/);
     assert.match(card, /stopPropagation/);
     assert.match(card, /appearance-none/);

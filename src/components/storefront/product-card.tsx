@@ -95,10 +95,10 @@ export function ProductCard({
           />
         </Link>
 
-        {/* Desktop hover/focus: charcoal veil (~0.80 photo), never on the Image itself. */}
+        {/* Fine-pointer hover/focus veil — see globals.css; never a permanent tablet dim. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-[1] hidden bg-[rgb(18_17_15_/_0.2)] opacity-0 transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:block md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+          className="product-card-veil pointer-events-none absolute inset-0 z-[1] hidden bg-[rgb(18_17_15_/_0.2)] opacity-0 transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:block"
         />
 
         <div className="absolute start-3 top-3 z-[2] flex flex-col gap-1.5">
@@ -109,9 +109,9 @@ export function ProductCard({
 
         <div
           className={cn(
-            "product-card-icon-bloom pointer-events-none absolute inset-x-0 top-1/2 z-10 hidden -translate-y-1/2 justify-center gap-4",
-            "opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            "md:flex md:group-hover:opacity-100 md:group-focus-within:opacity-100",
+            "product-card-icon-bloom product-card-actions pointer-events-none absolute inset-x-0 top-1/2 z-10 hidden -translate-y-1/2 justify-center gap-4",
+            "opacity-100 transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            "md:flex",
           )}
         >
           <button

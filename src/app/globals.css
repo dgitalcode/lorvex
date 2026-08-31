@@ -233,6 +233,27 @@ main > * h1:first-of-type,
   }
 }
 
+/*
+  Product-card overlay actions: visible on coarse/no-hover pointers from md up
+  (iPad / Surface). Hover-only reveal is limited to fine pointers that can hover.
+  Phones stay display:none via `hidden md:flex` on the markup.
+*/
+@media (hover: hover) and (pointer: fine) {
+  .product-card-actions {
+    opacity: 0;
+  }
+
+  .group:hover .product-card-actions,
+  .group:focus-within .product-card-actions {
+    opacity: 1;
+  }
+
+  .group:hover .product-card-veil,
+  .group:focus-within .product-card-veil {
+    opacity: 1;
+  }
+}
+
 /* Localized contrast bloom behind product-card action icons — not a box */
 .product-card-icon-bloom::before {
   content: "";
