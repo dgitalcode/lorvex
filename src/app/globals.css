@@ -388,6 +388,33 @@ html.luxury-cursor-active select {
   }
 }
 
+/* Lift WhatsApp above the mobile PDP purchase bar when it is on screen */
+@media (max-width: 1023px) {
+  body:has([data-floating-purchase]) .whatsapp-fab {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/*
+  iOS Safari zooms focused fields whose computed font-size is under 16px.
+  Desktop keeps existing text-sm (14px) utilities.
+*/
+@media (max-width: 767px) {
+  html {
+    overflow-x: clip;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(
+      [type="button"]
+    ):not([type="submit"]):not([type="reset"]):not([type="file"]):not(
+      [type="range"]
+    ):not([type="color"]):not([type="image"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

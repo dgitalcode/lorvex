@@ -70,6 +70,7 @@ export function FloatingPurchaseBar({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 72, opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          data-floating-purchase
           className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl print:hidden lg:hidden"
         >
           <div className="flex items-center justify-between gap-4 px-5 py-3">

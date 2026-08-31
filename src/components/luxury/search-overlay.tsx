@@ -197,7 +197,7 @@ export function SearchOverlay({
             role="dialog"
             aria-modal
             aria-label={dictionary.nav.search}
-            className="w-full max-w-2xl border border-border bg-card p-6 shadow-[var(--shadow-lift)] md:p-8"
+            className="w-full max-w-2xl max-h-[calc(100dvh-7rem)] overflow-y-auto border border-border bg-card p-6 shadow-[var(--shadow-lift)] md:p-8"
             initial={reduce ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}

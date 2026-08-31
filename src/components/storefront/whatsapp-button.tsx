@@ -56,9 +56,9 @@ export function WhatsAppButton({
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
       className={cn(
-        "group/wa fixed z-[45] print:hidden",
-        /* Clear mobile floating purchase bar + iOS home indicator */
-        "bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))]",
+        "whatsapp-fab group/wa fixed z-[45] print:hidden",
+        /* Mobile: bottom-end corner. Lifted only while the PDP purchase bar is mounted. */
+        "bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))]",
         "right-[max(1.25rem,env(safe-area-inset-right,0px))] left-auto",
         "rtl:right-auto rtl:left-[max(1.25rem,env(safe-area-inset-left,0px))]",
         "lg:bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))]",
