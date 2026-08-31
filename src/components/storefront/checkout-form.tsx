@@ -62,7 +62,7 @@ export function CheckoutForm({ locale, shippingMethods }: { locale: Locale; ship
   }
 
   return (
-    <form action={action} className="grid gap-10 lg:grid-cols-[1fr_390px]">
+    <form action={action} className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,390px)]">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       <input type="hidden" name="paymentMethod" value="COD" />
@@ -71,33 +71,33 @@ export function CheckoutForm({ locale, shippingMethods }: { locale: Locale; ship
         name="items"
         value={JSON.stringify(items.map(({ variantId, quantity }) => ({ variantId, quantity })))}
       />
-      <div className="space-y-10">
+      <div className="min-w-0 space-y-10">
         <fieldset>
           <legend className="font-display text-3xl">{t.contact}</legend>
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <div className="mt-5 grid min-w-0 gap-5 sm:grid-cols-2">
             <Field label={t.email} name="email" type="email" autoComplete="email" />
             <Field label={t.phone} name="phone" type="tel" autoComplete="tel" />
           </div>
         </fieldset>
         <fieldset>
           <legend className="font-display text-3xl">{t.shippingAddress}</legend>
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <div className="mt-5 grid min-w-0 gap-5 sm:grid-cols-2">
             <Field label={t.firstName} name="firstName" autoComplete="given-name" />
             <Field label={t.lastName} name="lastName" autoComplete="family-name" />
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <Field label={t.address} name="line1" autoComplete="address-line1" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <Field label={t.apartment} name="line2" autoComplete="address-line2" required={false} />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label htmlFor="city">{t.city}</Label>
               <select
                 id="city"
                 name="city"
                 required
                 defaultValue="Casablanca"
-                className="mt-2 h-11 w-full border bg-background px-3 text-sm"
+                className="mt-2 h-11 w-full min-w-0 max-w-full border bg-background px-3 text-sm"
               >
                 {cities.map((city) => (
                   <option key={city}>{city}</option>
@@ -192,7 +192,7 @@ function Field({
   ...props
 }: { label: string; name: string; required?: boolean } & React.ComponentProps<typeof Input>) {
   return (
-    <div>
+    <div className="min-w-0">
       <Label htmlFor={name}>{label}</Label>
       <Input id={name} name={name} required={required} className="mt-2" {...props} />
     </div>

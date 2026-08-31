@@ -27,7 +27,10 @@ describe("storefront mobile WhatsApp and iOS input zoom", () => {
 
   it("sets 16px form fields on mobile without disabling viewport zoom", () => {
     assert.match(css, /font-size:\s*16px/);
+    assert.match(css, /min-width:\s*0/);
+    assert.match(css, /max-width:\s*100%/);
     assert.match(css, /@media \(max-width: 767px\)/);
+    assert.doesNotMatch(css, /html \{\s*overflow-x:\s*clip/);
     assert.match(layout, /viewportFit:\s*"cover"/);
     assert.doesNotMatch(layout, /maximumScale/);
     assert.doesNotMatch(layout, /userScalable/);

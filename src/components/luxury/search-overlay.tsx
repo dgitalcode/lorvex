@@ -220,7 +220,7 @@ export function SearchOverlay({
             </div>
 
             <form
-              className="mt-6 flex items-center gap-3 border-b border-border pb-3"
+              className="mt-6 flex min-w-0 items-center gap-3 border-b border-border pb-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 const q = query.trim();
@@ -251,7 +251,7 @@ export function SearchOverlay({
                         ? "Search a watch…"
                         : "Rechercher une montre…"
                 }
-                className="border-0 px-0 text-lg shadow-none focus-visible:ring-0"
+                className="min-w-0 flex-1 border-0 px-0 text-lg shadow-none focus-visible:ring-0"
               />
               <button
                 type="button"

@@ -144,7 +144,7 @@ export function ShopClient({
             {initial.total} {dictionary.shop.results}
           </p>
           <select
-            className="h-10 border border-input bg-transparent px-3 text-sm"
+            className="h-10 min-w-0 max-w-full border border-input bg-transparent px-3 text-sm"
             value={current.sort ?? "newest"}
             onChange={(e) => pushParams({ sort: e.target.value, page: "1" })}
             aria-label={dictionary.shop.sort}

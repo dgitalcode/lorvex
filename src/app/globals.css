@@ -397,13 +397,10 @@ html.luxury-cursor-active select {
 
 /*
   iOS Safari zooms focused fields whose computed font-size is under 16px.
-  Desktop keeps existing text-sm (14px) utilities.
+  Keep 16px type only — do not grow intrinsic min-width (default size=20)
+  or clip overflow. Desktop keeps existing text-sm (14px) utilities.
 */
 @media (max-width: 767px) {
-  html {
-    overflow-x: clip;
-  }
-
   input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(
       [type="button"]
     ):not([type="submit"]):not([type="reset"]):not([type="file"]):not(
@@ -411,7 +408,12 @@ html.luxury-cursor-active select {
     ):not([type="color"]):not([type="image"]),
   textarea,
   select {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     font-size: 16px;
+    line-height: 1.25;
   }
 }
 
