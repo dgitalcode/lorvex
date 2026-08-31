@@ -29,6 +29,10 @@ describe("storefront product card actions", () => {
     assert.match(card, /bg-\[rgb\(18_17_15_\/_0\.2\)\]/);
     assert.match(card, /stopPropagation/);
     assert.match(card, /appearance-none/);
+    assert.match(card, /product-card-icon-bloom/);
+    assert.match(css, /radial-gradient/);
+    assert.match(css, /\.product-card-icon-bloom::before/);
+    assert.match(css, /\.product-card-icon-bloom::before[\s\S]*?pointer-events:\s*none/);
     assert.doesNotMatch(card, /bg-background\/90/);
     assert.doesNotMatch(card, /rounded-full/);
     assert.doesNotMatch(card, /md:group-hover:opacity-0/);

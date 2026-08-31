@@ -65,7 +65,7 @@ export function ProductCard({
 
   const actionClass = cn(
     "pointer-events-auto relative z-10 flex h-11 w-11 items-center justify-center appearance-none border-0 bg-transparent p-0",
-    "text-white [filter:drop-shadow(0_0_1px_rgb(18_17_15_/_0.95))_drop-shadow(0_2px_8px_rgb(18_17_15_/_0.55))]",
+    "text-[#f7f5f1] [filter:drop-shadow(0_0_1.2px_rgb(18_17_15))_drop-shadow(0_2px_6px_rgb(0_0_0_/_0.72))]",
     "transition-[transform,color,filter] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
     "hover:scale-110 hover:text-accent",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
@@ -109,7 +109,7 @@ export function ProductCard({
 
         <div
           className={cn(
-            "pointer-events-none absolute inset-x-0 top-1/2 z-10 hidden -translate-y-1/2 justify-center gap-4",
+            "product-card-icon-bloom pointer-events-none absolute inset-x-0 top-1/2 z-10 hidden -translate-y-1/2 justify-center gap-4",
             "opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
             "md:flex md:group-hover:opacity-100 md:group-focus-within:opacity-100",
           )}

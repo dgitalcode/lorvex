@@ -233,6 +233,26 @@ main > * h1:first-of-type,
   }
 }
 
+/* Localized contrast bloom behind product-card action icons — not a box */
+.product-card-icon-bloom::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  width: 17.5rem;
+  height: 7rem;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse 72% 58% at 50% 50%,
+    rgb(18 17 15 / 0.55) 0%,
+    rgb(18 17 15 / 0.28) 36%,
+    rgb(18 17 15 / 0.1) 58%,
+    transparent 76%
+  );
+}
+
 /* Hairline border that reads as engraved rather than drawn */
 .border-hairline {
   border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
