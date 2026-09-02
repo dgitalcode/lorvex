@@ -5,10 +5,7 @@ import { isLocale } from "@/i18n/get-dictionary";
 import { localePageMetadata } from "@/lib/page-metadata";
 import { storefrontCopy } from "@/content/storefront-copy";
 import { getStorefrontSettings } from "@/server/repositories/settings";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { ContactForm } from "@/components/storefront/contact-form";
 
 export async function generateMetadata({
   params,
@@ -68,47 +65,8 @@ export default async function ContactPage({
             </p>
           </div>
         </div>
-        <form
-          action={`mailto:${settings.supportEmail}`}
-          method="post"
-          encType="text/plain"
-          className="border bg-card p-8"
-        >
-          <h2 className="font-display text-3xl">{copy.contactFormTitle}</h2>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            <Field label={copy.contactName} name="name" />
-            <Field label={copy.contactEmail} name="email" type="email" />
-            <div className="sm:col-span-2">
-              <Field label={copy.contactSubject} name="subject" />
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="message">{copy.contactMessage}</Label>
-              <Textarea
-                id="message"
-                name="message"
-                required
-                className="mt-2 min-h-36"
-              />
-            </div>
-          </div>
-          <Button type="submit" size="lg" className="mt-6">
-            {copy.contactSubmit}
-          </Button>
-        </form>
+        <ContactForm locale={locale} />
       </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  name,
-  ...props
-}: { label: string; name: string } & React.ComponentProps<typeof Input>) {
-  return (
-    <div>
-      <Label htmlFor={name}>{label}</Label>
-      <Input id={name} name={name} required className="mt-2" {...props} />
     </div>
   );
 }

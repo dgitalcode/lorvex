@@ -48,6 +48,10 @@ type PageCopy = {
   contactSubject: string;
   contactMessage: string;
   contactSubmit: string;
+  contactSuccess: string;
+  contactInvalid: string;
+  contactRateLimited: string;
+  contactSendError: string;
   contactCity: string;
   marquee: string[];
   whyUs: { title: string; body: string }[];
@@ -157,6 +161,10 @@ const copy: Record<Locale, PageCopy> = {
     contactSubject: "Sujet",
     contactMessage: "Message",
     contactSubmit: "Envoyer",
+    contactSuccess: "Message envoyé. La conciergerie vous répondra avec discrétion.",
+    contactInvalid: "Veuillez vérifier les champs du formulaire.",
+    contactRateLimited: "Trop de messages. Réessayez dans quelques minutes.",
+    contactSendError: "L’envoi a échoué. Réessayez ou écrivez-nous par e-mail.",
     contactCity: "Casablanca, Maroc",
     marquee: [
       "Maison LORVEX",
@@ -292,6 +300,10 @@ const copy: Record<Locale, PageCopy> = {
     contactSubject: "Subject",
     contactMessage: "Message",
     contactSubmit: "Send",
+    contactSuccess: "Message sent. The concierge will reply with discretion.",
+    contactInvalid: "Please check the form fields.",
+    contactRateLimited: "Too many messages. Please try again in a few minutes.",
+    contactSendError: "Sending failed. Try again or email us directly.",
     contactCity: "Casablanca, Morocco",
     marquee: [
       "Maison LORVEX",
@@ -427,6 +439,10 @@ const copy: Record<Locale, PageCopy> = {
     contactSubject: "الموضوع",
     contactMessage: "الرسالة",
     contactSubmit: "إرسال",
+    contactSuccess: "تم إرسال الرسالة. سيرد الكونسيرج بتحفظ.",
+    contactInvalid: "يرجى التحقق من حقول النموذج.",
+    contactRateLimited: "رسائل كثيرة. حاول مرة أخرى بعد دقائق.",
+    contactSendError: "تعذر الإرسال. حاول مجدداً أو راسلنا بالبريد.",
     contactCity: "الدار البيضاء، المغرب",
     marquee: [
       "دار لورفكس",

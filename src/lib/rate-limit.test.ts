@@ -174,10 +174,15 @@ describe("durable rate limit core", () => {
       join(root, "app/[locale]/order/[number]/page.tsx"),
       "utf8",
     );
+    const contact = readFileSync(
+      join(root, "server/actions/contact.ts"),
+      "utf8",
+    );
     assert.equal(checkout.includes("checkRateLimit"), true);
     assert.equal(checkout.includes("CHECKOUT_RATE_LIMIT"), true);
     assert.equal(reset.includes("checkRateLimit"), true);
     assert.equal(register.includes("auth:register:"), true);
+    assert.equal(contact.includes("checkRateLimit"), true);
     assert.equal(analytics.includes("new Map"), false);
     assert.equal(analytics.includes("checkRateLimit"), true);
     assert.equal(orderPage.includes('status === "rate_limited"'), true);

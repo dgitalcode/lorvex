@@ -31,6 +31,7 @@ export async function sendTransactionalEmail(input: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
   /** Logging category only — never sent as a Resend template id. */
   template?: string;
   meta?: Record<string, unknown>;
@@ -56,7 +57,7 @@ export async function sendTransactionalEmail(input: {
         to: input.to,
         subject: input.subject,
         html: input.html,
-        replyTo: siteConfig.supportEmail,
+        replyTo: input.replyTo?.trim() || siteConfig.supportEmail,
         tags: input.template
           ? [{ name: "category", value: input.template.slice(0, 256) }]
           : undefined,
