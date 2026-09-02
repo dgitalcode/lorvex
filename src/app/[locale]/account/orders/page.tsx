@@ -5,6 +5,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isLocale } from "@/i18n/get-dictionary";
 import { formatPrice } from "@/lib/format";
+import { orderStatusLabel } from "@/lib/order-status-label";
+import type { Locale } from "@/config/site";
 
 export const metadata = { title: "My orders", robots: { index: false } };
 
@@ -56,7 +58,8 @@ export default async function OrdersPage({
                   {order.createdAt.toLocaleDateString(locale)}
                 </span>
                 <span className="text-sm">
-                  {order._count.items} item(s) · {order.status}
+                  {order._count.items} item(s) ·{" "}
+                  {orderStatusLabel(locale as Locale, order.status)}
                   {order.paymentMethod === "COD"
                     ? ` · COD (${order.paymentStatus})`
                     : ` · ${order.paymentStatus}`}

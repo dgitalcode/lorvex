@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { assertPermission } from "@/server/auth/require-admin";
 import { writeAuditLog } from "@/server/services/audit";
+import { logOps } from "@/lib/ops-log";
 import { restoreOrderStock } from "@/server/services/inventory";
 import {
   addOrderNoteSchema,
@@ -115,6 +116,12 @@ export async function updateOrderStatus(
     if (code === "INVALID_TRANSITION") {
       return { error: "This status transition is not allowed." };
     }
+    await logOps({
+      level: "error",
+      source: "admin.orders",
+      message: "status_update_failed",
+      meta: { orderId },
+    });
     return { error: "Could not update order status." };
   }
 }

@@ -14,6 +14,12 @@ import {
   couponPriorUseWhere,
   exceedsPerUserLimit,
 } from "@/server/checkout/rules";
+import {
+  checkoutErrorMessage,
+  localeFromCheckout,
+} from "@/server/checkout/messages";
+import { deliverOrderConfirmationForNumber } from "@/server/services/order-confirmation-email";
+import { logOps } from "@/lib/ops-log";
 
 export type CheckoutState = {
   error?: string;
@@ -44,11 +50,12 @@ export async function createOrder(
   _state: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
+  const locale = localeFromCheckout(formData.get("locale"));
   let rawItems: unknown;
   try {
     rawItems = JSON.parse(String(formData.get("items") ?? "[]"));
   } catch {
-    return { error: "Your cart could not be read. Please refresh and try again." };
+    return { error: checkoutErrorMessage(locale, "CART") };
   }
   const parsed = checkoutSchema.safeParse({
     locale: formData.get("locale"),
@@ -73,9 +80,14 @@ export async function createOrder(
       issue.path.includes("paymentMethod"),
     );
     if (paymentIssue) {
-      return { error: "Card payment is not available. Please use cash on delivery." };
+      await logOps({
+        level: "warn",
+        source: "checkout.payment",
+        message: "unsupported_payment_method",
+      });
+      return { error: checkoutErrorMessage(locale, "PAYMENT_METHOD") };
     }
-    return { error: parsed.error.issues[0]?.message ?? "Please check your details." };
+    return { error: checkoutErrorMessage(locale, "VALIDATION") };
   }
 
   const data = parsed.data;
@@ -92,14 +104,22 @@ export async function createOrder(
     windowMs: CHECKOUT_RATE_LIMIT.ip.windowMs,
   });
   if (!emailLimit.allowed || !ipLimit.allowed) {
-    return {
-      error: "Too many checkout attempts. Please wait a few minutes and try again.",
-    };
+    return { error: checkoutErrorMessage(locale, "RATE_LIMIT") };
   }
 
   const idempotencyKeyHash = hashToken(data.idempotencyKey);
   const replay = await existingOrderForIdempotency(idempotencyKeyHash);
   if (replay) {
+    try {
+      await deliverOrderConfirmationForNumber(replay.number, data.locale);
+    } catch {
+      await logOps({
+        level: "error",
+        source: "checkout.email",
+        message: "order_confirmation_replay_failed",
+        meta: { orderNumber: replay.number },
+      });
+    }
     return { success: true, number: replay.number };
   }
 
@@ -252,24 +272,56 @@ export async function createOrder(
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+    try {
+      await deliverOrderConfirmationForNumber(number, data.locale);
+    } catch {
+      await logOps({
+        level: "error",
+        source: "checkout.email",
+        message: "order_confirmation_after_create_failed",
+        meta: { orderNumber: number },
+      });
+    }
     return { success: true, number, accessToken };
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const replay = await existingOrderForIdempotency(idempotencyKeyHash);
-      if (replay) return { success: true, number: replay.number };
+      const conflict = await existingOrderForIdempotency(idempotencyKeyHash);
+      if (conflict) {
+        try {
+          await deliverOrderConfirmationForNumber(conflict.number, data.locale);
+        } catch {
+          /* isolated */
+        }
+        return { success: true, number: conflict.number };
+      }
     }
     const code = error instanceof Error ? error.message : "";
-    const messages: Record<string, string> = {
-      STOCK: "One of your watches is no longer available in the requested quantity.",
-      PRODUCT: "A product in your cart is no longer available.",
-      SHIPPING: "Please choose an available shipping method.",
-      COUPON: "This coupon is invalid or no longer available.",
-    };
+    const known =
+      code === "STOCK" ||
+      code === "PRODUCT" ||
+      code === "SHIPPING" ||
+      code === "COUPON";
+    if (!known) {
+      await logOps({
+        level: "error",
+        source: "checkout.create",
+        message: "order_create_failed",
+        meta: {
+          prismaCode:
+            error instanceof Prisma.PrismaClientKnownRequestError
+              ? error.code
+              : "UNKNOWN",
+        },
+      });
+    }
     return {
-      error: messages[code] ?? "We could not place your order. Please try again.",
+      error: checkoutErrorMessage(
+        locale,
+        known ? (code as "STOCK" | "PRODUCT" | "SHIPPING" | "COUPON") : "GENERIC",
+      ),
     };
   }
 }

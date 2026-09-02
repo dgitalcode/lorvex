@@ -9,6 +9,7 @@ import { isLocale } from "@/i18n/get-dictionary";
 import { auth } from "@/lib/auth";
 import { getClientIp } from "@/server/services/security";
 import { findAuthorizedStorefrontOrder } from "@/server/services/order-access";
+import { orderStatusLabel } from "@/lib/order-status-label";
 
 export const dynamic = "force-dynamic";
 
@@ -85,11 +86,10 @@ export default async function OrderPage({
           <CheckCircle2 className="h-8 w-8" strokeWidth={1.5} />
         </div>
         <p className="mt-8 text-[11px] uppercase tracking-[0.24em] text-accent">
-          {locale === "ar"
-            ? "تم تأكيد الطلب"
-            : locale === "en"
-              ? "Order confirmed"
-              : "Commande confirmée"}
+          {orderStatusLabel(
+            locale === "ar" || locale === "en" ? locale : "fr",
+            order.status,
+          )}
         </p>
         <h1 className="mt-3 font-display text-5xl leading-tight text-balance md:text-6xl">
           {locale === "ar"

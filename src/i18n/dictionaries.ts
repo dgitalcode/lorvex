@@ -99,6 +99,20 @@ export const dictionaries = {
       subtotal: "Sous-total",
       placingOrder: "Validation de la commande…",
       secureCheckout: "Paiement chiffré et sécurisé",
+      errors: {
+        CART: "Votre panier n’a pas pu être lu. Actualisez la page puis réessayez.",
+        VALIDATION: "Veuillez vérifier vos informations.",
+        PAYMENT_METHOD:
+          "Le paiement par carte n’est pas disponible. Choisissez le paiement à la livraison.",
+        RATE_LIMIT:
+          "Trop de tentatives. Attendez quelques minutes puis réessayez.",
+        STOCK:
+          "Une de vos montres n’est plus disponible dans la quantité demandée.",
+        PRODUCT: "Un produit de votre panier n’est plus disponible.",
+        SHIPPING: "Veuillez choisir un mode de livraison disponible.",
+        COUPON: "Ce code promo n’est plus valable.",
+        GENERIC: "Nous n’avons pas pu enregistrer la commande. Réessayez.",
+      },
     },
     account: {
       dashboard: "Tableau de bord",
@@ -233,6 +247,20 @@ export const dictionaries = {
       subtotal: "Subtotal",
       placingOrder: "Placing order…",
       secureCheckout: "Secure encrypted checkout",
+      errors: {
+        CART: "Your cart could not be read. Please refresh and try again.",
+        VALIDATION: "Please check your details.",
+        PAYMENT_METHOD:
+          "Card payment is not available. Please use cash on delivery.",
+        RATE_LIMIT:
+          "Too many checkout attempts. Please wait a few minutes and try again.",
+        STOCK:
+          "One of your watches is no longer available in the requested quantity.",
+        PRODUCT: "A product in your cart is no longer available.",
+        SHIPPING: "Please choose an available shipping method.",
+        COUPON: "This coupon is invalid or no longer available.",
+        GENERIC: "We could not place your order. Please try again.",
+      },
     },
     account: {
       dashboard: "Dashboard",
@@ -367,6 +395,19 @@ export const dictionaries = {
       subtotal: "المجموع الفرعي",
       placingOrder: "جارٍ تأكيد الطلب…",
       secureCheckout: "دفع مشفّر وآمن",
+      errors: {
+        CART: "تعذّر قراءة سلتك. حدّث الصفحة ثم أعد المحاولة.",
+        VALIDATION: "يرجى التحقق من بياناتك.",
+        PAYMENT_METHOD:
+          "الدفع بالبطاقة غير متاح. يرجى اختيار الدفع عند الاستلام.",
+        RATE_LIMIT:
+          "محاولات كثيرة. انتظر بضع دقائق ثم أعد المحاولة.",
+        STOCK: "إحدى ساعاتك لم تعد متوفرة بالكمية المطلوبة.",
+        PRODUCT: "أحد منتجات سلتك لم يعد متوفراً.",
+        SHIPPING: "يرجى اختيار طريقة توصيل متاحة.",
+        COUPON: "رمز العرض غير صالح أو لم يعد متاحاً.",
+        GENERIC: "تعذّر تسجيل الطلب. يرجى المحاولة مرة أخرى.",
+      },
     },
     account: {
       dashboard: "لوحة التحكم",
