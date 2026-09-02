@@ -67,6 +67,33 @@ export default async function OrderPage({
   const sp = await searchParams;
   const presentedToken = presentedAccessToken(sp.k);
   const result = await resolveAuthorizedOrder(locale, number, presentedToken);
+  if (result.status === "rate_limited") {
+    const title =
+      locale === "ar"
+        ? "طلبات كثيرة جداً"
+        : locale === "en"
+          ? "Too many requests"
+          : "Trop de demandes";
+    const body =
+      locale === "ar"
+        ? "أعد المحاولة بعد قليل."
+        : locale === "en"
+          ? "Please try again in a few minutes."
+          : "Veuillez réessayer dans quelques minutes.";
+    return (
+      <div className="luxury-container pb-24 page-pad">
+        <title>{composeDocumentTitle(title)}</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <div className="mx-auto max-w-xl py-16">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-accent">
+            LORVEX
+          </p>
+          <h1 className="mt-4 font-display text-4xl leading-tight">{title}</h1>
+          <p className="mt-4 text-muted-foreground">{body}</p>
+        </div>
+      </div>
+    );
+  }
   if (result.status !== "allow" || !result.order) notFound();
   const order = result.order;
 

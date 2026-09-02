@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { smartSearch, getCachedTrendingSearches } from "@/server/services/search";
-import { checkRateLimit } from "@/server/services/security";
+import { checkRateLimit, rateLimitRetryAfterHeader } from "@/server/services/security";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Too many requests", results: [] },
-      { status: 429 },
+      { status: 429, headers: rateLimitRetryAfterHeader(limit) },
     );
   }
 

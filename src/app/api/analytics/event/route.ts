@@ -2,35 +2,23 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { analyticsEventSchema } from "@/server/validations/analytics";
-
-const rateLimit = new Map<string, { count: number; resetAt: number }>();
-const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 120;
-
-function getClientKey(request: Request) {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
-}
-
-function isRateLimited(key: string) {
-  const now = Date.now();
-  const entry = rateLimit.get(key);
-  if (!entry || entry.resetAt <= now) {
-    rateLimit.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  if (entry.count > MAX_PER_WINDOW) return true;
-  return false;
-}
+import {
+  checkRateLimit,
+  ipFromRequest,
+  rateLimitRetryAfterHeader,
+} from "@/server/services/security";
 
 export async function POST(request: Request) {
-  const clientKey = getClientKey(request);
-  if (isRateLimited(clientKey)) {
-    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+  const limited = await checkRateLimit({
+    key: `analytics:${ipFromRequest(request)}`,
+    limit: 120,
+    windowMs: 60_000,
+  });
+  if (!limited.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: rateLimitRetryAfterHeader(limited) },
+    );
   }
 
   let body: unknown;

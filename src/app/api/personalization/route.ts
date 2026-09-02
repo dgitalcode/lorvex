@@ -5,7 +5,7 @@ import {
   getPersonalizedHomepage,
   upsertPersonalizationFromBehavior,
 } from "@/server/services/recommendations";
-import { checkRateLimit } from "@/server/services/security";
+import { checkRateLimit, rateLimitRetryAfterHeader } from "@/server/services/security";
 
 const bodySchema = z.object({
   sessionId: z.string().min(8).max(80).optional(),
@@ -21,7 +21,10 @@ export async function POST(request: Request) {
     windowMs: 60_000,
   });
   if (!limited.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: rateLimitRetryAfterHeader(limited) },
+    );
   }
 
   try {

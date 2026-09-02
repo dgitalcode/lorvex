@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { checkRateLimit } from "@/server/services/security";
+import { checkRateLimit, rateLimitRetryAfterHeader } from "@/server/services/security";
 
 /**
  * Image search architecture endpoint.
@@ -23,7 +23,10 @@ export async function POST(request: Request) {
     windowMs: 60_000,
   });
   if (!limited.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: rateLimitRetryAfterHeader(limited) },
+    );
   }
 
   const body = schema.safeParse(await request.json().catch(() => ({})));

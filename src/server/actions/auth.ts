@@ -4,7 +4,9 @@ import { hash } from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signOut } from "@/lib/auth";
+import { getAuthStrings } from "@/i18n/auth-strings";
 import { passwordSchema } from "@/lib/password-policy";
+import { checkRateLimit, getClientIp } from "@/server/services/security";
 
 const registerSchema = z.object({
   firstName: z.string().trim().min(2).max(80),
@@ -32,6 +34,23 @@ export async function registerUser(
       error: parsed.error.issues[0]?.message ?? "Please check your information.",
     };
   }
+
+  const t = getAuthStrings(parsed.data.locale);
+  const ip = await getClientIp();
+  const emailLimit = await checkRateLimit({
+    key: `auth:register:${parsed.data.email}`,
+    limit: 5,
+    windowMs: 15 * 60_000,
+  });
+  const ipLimit = await checkRateLimit({
+    key: `auth:register-ip:${ip}`,
+    limit: 10,
+    windowMs: 15 * 60_000,
+  });
+  if (!emailLimit.allowed || !ipLimit.allowed) {
+    return { error: t.rateLimited };
+  }
+
   const existing = await prisma.user.findUnique({
     where: { email: parsed.data.email },
     select: { id: true },

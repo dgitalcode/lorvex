@@ -78,7 +78,11 @@ export async function findAuthorizedStorefrontOrder(input: {
     windowMs: ORDER_LOOKUP_RATE.windowMs,
   });
   if (!limited.allowed) {
-    return { status: "rate_limited" as const, order: null };
+    return {
+      status: "rate_limited" as const,
+      order: null,
+      retryAfterSeconds: limited.retryAfterSeconds,
+    };
   }
 
   const order = await prisma.order.findUnique({

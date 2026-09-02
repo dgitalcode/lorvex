@@ -20,7 +20,12 @@ export async function GET(
     ip: ipFromRequest(request),
   });
   if (result.status === "rate_limited") {
-    return new Response("Too many requests", { status: 429 });
+    return new Response("Too many requests", {
+      status: 429,
+      headers: {
+        "Retry-After": String(result.retryAfterSeconds ?? 60),
+      },
+    });
   }
   if (result.status !== "allow" || !result.order) notFound();
   const order = result.order;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isLocale } from "@/i18n/get-dictionary";
-import { checkRateLimit } from "@/server/services/security";
+import { checkRateLimit, rateLimitRetryAfterHeader } from "@/server/services/security";
 import { listEligiblePopups } from "@/server/repositories/marketing-popups";
 import {
   classifyDevice,
@@ -19,7 +19,10 @@ export async function GET(request: Request) {
     windowMs: 60_000,
   });
   if (!limit.allowed) {
-    return NextResponse.json({ campaign: null }, { status: 429 });
+    return NextResponse.json(
+      { campaign: null },
+      { status: 429, headers: rateLimitRetryAfterHeader(limit) },
+    );
   }
 
   const { searchParams } = new URL(request.url);
