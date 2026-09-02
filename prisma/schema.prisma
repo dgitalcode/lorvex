@@ -1282,18 +1282,28 @@ model SystemLog {
 }
 
 model BackupRecord {
-  id          String    @id @default(cuid())
-  filename    String
-  path        String
-  sizeBytes   Int?
-  status      String
-  snapshot    Json?
-  createdBy   String?
-  createdAt   DateTime  @default(now())
-  completedAt DateTime?
-  author      User?     @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  id                 String    @id @default(cuid())
+  filename           String
+  path               String
+  sizeBytes          Int?
+  status             String
+  snapshot           Json?
+  type               String    @default("LEGACY")
+  storageKey         String?
+  storageProvider    String?
+  checksum           String?
+  checksumAlgorithm  String?
+  encrypted          Boolean   @default(false)
+  error              String?   @db.Text
+  retentionClass     String?
+  createdBy          String?
+  createdAt          DateTime  @default(now())
+  completedAt        DateTime?
+  author             User?     @relation(fields: [createdBy], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
+  @@index([type, status])
+  @@index([storageKey])
 }
 
 model ScheduledJob {

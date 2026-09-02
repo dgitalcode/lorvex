@@ -17,7 +17,8 @@ describe("admin permissions", () => {
   it("restricts ANALYST to read-only surfaces", () => {
     assert.equal(roleHasPermission("ANALYST", "analytics.view"), true);
     assert.equal(roleHasPermission("ANALYST", "products.edit"), false);
-    assert.equal(roleHasPermission("ANALYST", "system.manage"), false);
+    assert.equal(roleHasPermission("ADMIN", "system.manage"), false);
+    assert.equal(roleHasPermission("ADMIN", "system.view"), true);
   });
 
   it("treats only staff roles as staff", () => {

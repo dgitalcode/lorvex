@@ -2,19 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Activity, Database, HardDrive, RefreshCw } from "lucide-react";
+import { Activity, HardDrive, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { StatCard } from "@/components/admin/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateTime } from "@/lib/format";
 import {
   clearCacheTags,
-  createBackupRecord,
   runHealthChecks,
 } from "@/server/actions/admin/system";
+import { BackupsManager, type BackupRow } from "@/components/admin/system/backups-manager";
 
 type HealthRow = {
   id: string;
@@ -36,14 +35,6 @@ type JobRow = {
   lastError: string | null;
 };
 
-type BackupRow = {
-  id: string;
-  filename: string;
-  status: string;
-  sizeBytes: number | null;
-  createdAt: string;
-};
-
 export function SystemOperationsPanel({
   latestChecks,
   jobs,
@@ -51,6 +42,8 @@ export function SystemOperationsPanel({
   cloudinaryUsage,
   emailStatus,
   cloudinaryStatus,
+  backupHealth,
+  backupStorage,
   canManage,
 }: {
   latestChecks: HealthRow[];
@@ -68,6 +61,15 @@ export function SystemOperationsPanel({
     missing: string[];
     error?: string | null;
   };
+  backupHealth: {
+    ready: number;
+    failed: number;
+    legacy: number;
+    lastSuccessfulAt: string | null;
+    nextScheduledAt: string | null;
+    operationLock: string;
+  };
+  backupStorage: { configured: boolean; provider: string; missing: string[] };
   canManage: boolean;
 }) {
   const router = useRouter();
@@ -108,15 +110,6 @@ export function SystemOperationsPanel({
               >
                 <Activity className="mr-2 h-4 w-4" />
                 Run health checks
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={pending}
-                onClick={() => runAction("Backup", createBackupRecord)}
-              >
-                <Database className="mr-2 h-4 w-4" />
-                Create backup
               </Button>
               <Button
                 size="sm"
@@ -165,7 +158,7 @@ export function SystemOperationsPanel({
         <StatCard
           label="Latest checks"
           value={String(latestChecks.length)}
-          hint={`${backups.filter((b) => b.status === "COMPLETED").length} backups`}
+          hint={`${backupHealth.ready} restorable backups`}
         />
       </div>
 
@@ -223,49 +216,13 @@ export function SystemOperationsPanel({
         </Card>
       </div>
 
-      <Card className="border-border/80 shadow-none">
-        <CardHeader>
-          <CardTitle className="font-display text-2xl">Recent backups</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-left text-sm">
-            <thead className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              <tr>
-                <th className="pb-3">Filename</th>
-                <th className="pb-3">Status</th>
-                <th className="pb-3">Size</th>
-                <th className="pb-3 text-right">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {backups.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                    No backups yet.
-                  </td>
-                </tr>
-              ) : (
-                backups.map((backup) => (
-                  <tr key={backup.id}>
-                    <td className="py-3 font-medium">{backup.filename}</td>
-                    <td className="py-3">
-                      <Badge variant="outline">{backup.status}</Badge>
-                    </td>
-                    <td className="py-3 tabular-nums">
-                      {backup.sizeBytes
-                        ? `${Math.round(backup.sizeBytes / 1024)} KB`
-                        : "—"}
-                    </td>
-                    <td className="py-3 text-right text-muted-foreground">
-                      {formatDateTime(backup.createdAt)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      <BackupsManager
+        backups={backups}
+        canManage={canManage}
+        health={backupHealth}
+        storageConfigured={backupStorage.configured}
+        missingConfig={backupStorage.missing}
+      />
     </div>
   );
 }

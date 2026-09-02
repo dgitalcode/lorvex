@@ -19,6 +19,12 @@ import {
 import { writeAuditLog, writeSystemLog } from "@/server/services/audit";
 import { SITE_SETTINGS_TAG } from "@/server/repositories/settings";
 import {
+  deleteBackupRecord as deleteBackupRecordService,
+  restoreBackupRecord as restoreBackupRecordService,
+  runBackupPipeline,
+  validateBackupRecord,
+} from "@/server/backup/service";
+import {
   updateSiteSettingsSchema,
   updateStaffRoleSchema,
   type UpdateSiteSettingsInput,
@@ -201,96 +207,60 @@ export async function runHealthChecks(): Promise<SystemActionResult> {
 }
 
 export async function createBackupRecord(): Promise<SystemActionResult> {
-  let recordId: string | null = null;
   try {
     const user = await assertPermission("system.manage");
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `lorvex-backup-${timestamp}.json`;
-
-    const record = await prisma.backupRecord.create({
-      data: {
-        filename,
-        path: "postgres:pending",
-        status: "PENDING",
-        createdBy: user.id,
-      },
+    const result = await runBackupPipeline({
+      userId: user.id,
+      trigger: "manual",
     });
-    recordId = record.id;
-
-    const [
-      users,
-      products,
-      orders,
-      customers,
-      mediaAssets,
-      analyticsEvents,
-      auditLogs,
-    ] = await Promise.all([
-      prisma.user.count(),
-      prisma.product.count(),
-      prisma.order.count(),
-      prisma.user.count({ where: { role: "CUSTOMER" } }),
-      prisma.mediaAsset.count(),
-      prisma.analyticsEvent.count(),
-      prisma.auditLog.count(),
-    ]);
-
-    const payload = {
-      generatedAt: new Date().toISOString(),
-      counts: {
-        users,
-        products,
-        orders,
-        customers,
-        mediaAssets,
-        analyticsEvents,
-        auditLogs,
-      },
-      integrations: {
-        cloudinary: getCloudinaryConfigStatus().configured,
-        email: getEmailConfigStatus().configured,
+    revalidatePath("/admin/system");
+    return {
+      ok: true,
+      data: {
+        id: result.record.id,
+        filename: result.record.filename,
+        steps: result.steps,
       },
     };
-
-    const serialized = JSON.stringify(payload);
-    const completed = await prisma.backupRecord.update({
-      where: { id: record.id },
-      data: {
-        path: `postgres:backup_records/${record.id}`,
-        status: "COMPLETED",
-        snapshot: payload,
-        sizeBytes: Buffer.byteLength(serialized, "utf8"),
-        completedAt: new Date(),
-      },
-    });
-
-    await writeAuditLog({
-      userId: user.id,
-      action: "system.backup.create",
-      entity: "BackupRecord",
-      entityId: completed.id,
-      metadata: { filename, counts: payload.counts },
-    });
-
-    await writeSystemLog({
-      level: "info",
-      source: "system.backup",
-      message: "Backup record completed",
-      meta: { filename, sizeBytes: completed.sizeBytes },
-    });
-
-    revalidatePath("/admin/system");
-    return { ok: true, data: { id: completed.id, filename } };
   } catch (error) {
-    if (recordId) {
-      await prisma.backupRecord
-        .update({
-          where: { id: recordId },
-          data: { status: "FAILED" },
-        })
-        .catch(() => undefined);
-    }
+    return actionError(error);
+  }
+}
+
+export async function validateStoredBackup(id: string): Promise<SystemActionResult> {
+  try {
+    const user = await assertPermission("system.manage");
+    const result = await validateBackupRecord({ id, userId: user.id });
+    return { ok: true, data: { ...result } };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function deleteStoredBackup(id: string): Promise<SystemActionResult> {
+  try {
+    const user = await assertPermission("system.manage");
+    await deleteBackupRecordService(id, user.id);
+    revalidatePath("/admin/system");
+    return { ok: true };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function restoreStoredBackup(
+  id: string,
+  confirmation: string,
+): Promise<SystemActionResult> {
+  try {
+    const user = await assertPermission("system.manage");
+    await restoreBackupRecordService({
+      id,
+      userId: user.id,
+      confirmation,
+    });
+    return { ok: false, error: "Automated restore is disabled." };
+  } catch (error) {
     return actionError(error);
   }
 }

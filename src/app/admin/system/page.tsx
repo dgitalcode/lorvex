@@ -9,6 +9,11 @@ import { getEmailConfigStatus } from "@/lib/email";
 import { requirePermission } from "@/server/auth/require-admin";
 import { roleHasPermission } from "@/server/auth/permissions";
 import { ensurePermissionsSeeded } from "@/server/actions/admin/system";
+import { getBackupConfigStatus } from "@/server/backup/config";
+import {
+  backupHealthSummary,
+  markLegacyBackupRecords,
+} from "@/server/backup/service";
 import { SystemOperationsPanel } from "@/components/admin/system/system-operations-panel";
 
 export const metadata = { title: "System health" };
@@ -17,6 +22,7 @@ export default async function AdminSystemPage() {
   const user = await requirePermission("system.view");
 
   await ensurePermissionsSeeded();
+  await markLegacyBackupRecords();
 
   const [
     latestChecks,
@@ -24,6 +30,7 @@ export default async function AdminSystemPage() {
     backups,
     cloudinaryUsage,
     cloudinaryLive,
+    backupHealth,
   ] = await Promise.all([
     prisma.systemHealthCheck.findMany({
       orderBy: { checkedAt: "desc" },
@@ -32,12 +39,13 @@ export default async function AdminSystemPage() {
     prisma.scheduledJob.findMany({ orderBy: { name: "asc" } }),
     prisma.backupRecord.findMany({
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 30,
     }),
     isCloudinaryConfigured() ? getCloudinaryUsage().catch(() => null) : null,
     isCloudinaryConfigured()
       ? verifyCloudinaryConnection()
       : Promise.resolve({ ok: false as const, error: "missing env" }),
+    backupHealthSummary(),
   ]);
 
   const emailStatus = getEmailConfigStatus();
@@ -60,12 +68,25 @@ export default async function AdminSystemPage() {
         nextRunAt: job.nextRunAt?.toISOString() ?? null,
       }))}
       backups={backups.map((backup) => ({
-        ...backup,
+        id: backup.id,
+        filename: backup.filename,
+        status: backup.status,
+        type: backup.type,
+        sizeBytes: backup.sizeBytes,
+        storageProvider: backup.storageProvider,
+        checksum: backup.checksum,
+        checksumAlgorithm: backup.checksumAlgorithm,
+        encrypted: backup.encrypted,
+        retentionClass: backup.retentionClass,
+        error: backup.error,
         createdAt: backup.createdAt.toISOString(),
+        completedAt: backup.completedAt?.toISOString() ?? null,
       }))}
       cloudinaryUsage={cloudinaryUsage}
       emailStatus={emailStatus}
       cloudinaryStatus={cloudinaryStatus}
+      backupHealth={backupHealth}
+      backupStorage={getBackupConfigStatus()}
     />
   );
 }
