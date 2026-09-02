@@ -3,7 +3,7 @@
 !.env.example
 .env.production.local
 .env.local
-backups/
+/backups/
 *.pem
 *.key
 scripts/push-prod-schema.mjs
