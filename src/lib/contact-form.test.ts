@@ -32,7 +32,7 @@ describe("contact enquiry form", () => {
     );
   });
 
-  it("escapes enquiry HTML and keeps a safe subject", () => {
+  it("escapes enquiry HTML and keeps a branded subject", () => {
     const email = buildContactEnquiryEmail({
       name: `<script>alert(1)</script>`,
       email: "guest@example.com",
@@ -43,6 +43,11 @@ describe("contact enquiry form", () => {
     assert.equal(email.html.includes("<script>"), false);
     assert.match(email.html, /&lt;script&gt;/);
     assert.match(email.html, /<br\/>/);
-    assert.match(email.subject, /^\[LORVEX\]/);
+    assert.match(email.subject, /LORVEX/);
+    assert.equal(email.html.includes("localhost"), false);
+    assert.match(email.html, /https:\/\/www\.lorvex\.ma\/icons\/icon-192\.png/);
+    assert.match(email.html, /mailto:guest@example\.com/);
+    assert.match(email.html, /Répondre au client/);
+    assert.doesNotMatch(email.html, /style="style=/);
   });
 });

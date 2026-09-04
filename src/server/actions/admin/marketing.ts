@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { sanitizePopupCtaUrl } from "@/lib/marketing-popup";
 import { absoluteUrl } from "@/lib/format";
 import { isEmailConfigured, sendTransactionalEmail } from "@/lib/email";
+import { wrapCampaignHtml } from "@/lib/email/layout";
+import { buildAbandonedCartEmail } from "@/lib/email/abandoned-cart-template";
 import { assertPermission } from "@/server/auth/require-admin";
 import { writeAuditLog } from "@/server/services/audit";
 import {
@@ -435,7 +437,10 @@ export async function sendCampaign(input: unknown): Promise<MarketingActionResul
           sendTransactionalEmail({
             to,
             subject: campaign.subject!,
-            html: campaign.body!,
+            html: wrapCampaignHtml({
+              subject: campaign.subject!,
+              bodyHtml: campaign.body!,
+            }),
             template: "marketing_campaign",
             idempotencyKey: `marketing-campaign/${campaign.id}/${to}`,
             meta: { campaignId: campaign.id, campaignName: campaign.name },
@@ -829,21 +834,16 @@ export async function sendAbandonedCartReminders(): Promise<MarketingActionResul
       const results = await Promise.all(
         batch.map(async (snapshot) => {
           const items = snapshot.items as CartSnapshotItem[];
-          const itemLines = items
-            .map(
-              (item) =>
-                `<li>${item.name} × ${item.quantity} — ${item.unitPrice.toFixed(2)} ${snapshot.currency}</li>`,
-            )
-            .join("");
+          const mail = buildAbandonedCartEmail({
+            items,
+            total: Number(snapshot.total),
+            currency: snapshot.currency,
+            cartUrl: absoluteUrl("/fr/cart"),
+          });
           const result = await sendTransactionalEmail({
             to: snapshot.email!,
-            subject: "You left items in your cart — LORVEX",
-            html: `
-              <p>We noticed you left luxury timepieces in your cart.</p>
-              <ul>${itemLines}</ul>
-              <p><strong>Total: ${Number(snapshot.total).toFixed(2)} ${snapshot.currency}</strong></p>
-              <p><a href="${absoluteUrl("/fr/cart")}">Complete your order</a></p>
-            `,
+            subject: mail.subject,
+            html: mail.html,
             template: "abandoned_cart",
             idempotencyKey: `abandoned-cart/${snapshot.id}`,
             meta: { snapshotId: snapshot.id },

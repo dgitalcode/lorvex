@@ -67,7 +67,10 @@ export async function submitContactEnquiry(
   }
 
   const settings = await getStorefrontSettings();
-  const email = buildContactEnquiryEmail(parsed.data);
+  const email = buildContactEnquiryEmail({
+    ...parsed.data,
+    supportEmail: settings.supportEmail,
+  });
   const result = await sendTransactionalEmail({
     to: settings.supportEmail,
     subject: email.subject,

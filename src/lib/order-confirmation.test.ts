@@ -48,6 +48,8 @@ describe("order confirmation email", () => {
       assert.match(mail.html, /Noir Impérial 40/);
       assert.match(mail.html, /Casablanca/);
       assert.match(mail.html, /Amine/);
+      assert.match(mail.html, /icon-192\.png/);
+      assert.equal(mail.html.includes("localhost"), false);
       assert.doesNotMatch(mail.html, /\?k=/);
       assert.doesNotMatch(mail.html, /accessToken/);
       assert.doesNotMatch(mail.html, /idempotency/);
